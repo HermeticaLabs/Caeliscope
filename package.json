@@ -1,0 +1,44 @@
+{
+  "name": "caeliscope",
+  "version": "0.1.0",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "sync": "node scripts/sync-engine.mjs",
+    "test": "node --test \"test/*.test.mjs\"",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/cormorant": "^5.3.0",
+    "@fontsource-variable/jost": "^5.3.0",
+    "three": "^0.186.1",
+    "tz-lookup": "^6.1.25"
+  },
+  "devDependencies": {
+    "vite": "^8.3.3"
+  },
+  "description": "Caeliscope: an immersive sky viewer and technical demo built on Caelis Engine.",
+  "license": "AGPL-3.0-or-later",
+  "author": "Hermetica Labs",
+  "homepage": "https://github.com/hermeticalabs/caeliscope",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hermeticalabs/caeliscope.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hermeticalabs/caeliscope/issues"
+  },
+  "keywords": [
+    "astronomy",
+    "sky-viewer",
+    "planetarium",
+    "ephemeris",
+    "caelis-engine",
+    "threejs",
+    "webgl"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
+}

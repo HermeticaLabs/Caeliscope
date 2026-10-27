@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use Caeliscope, please cite it as below."
+title: "Caeliscope"
+type: software
+authors:
+  - name: "Hermetica Labs"
+repository-code: "https://github.com/hermeticalabs/caeliscope"
+license: AGPL-3.0-or-later
+version: 0.1.0

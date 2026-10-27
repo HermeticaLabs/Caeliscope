@@ -1,0 +1,19 @@
+Estrellas: catalogo Hipparcos (ESA) segun el paquete d3-celestial de Olaf Frohn, licencia BSD-3-Clause.
+Textura lunar (moon.jpg): NASA/Goddard/Scientific Visualization Studio, CGI Moon Kit (LRO).
+Constelaciones y nombres de estrellas: d3-celestial de Olaf Frohn, licencia BSD-3-Clause.
+Via Lactea (milkyway.png): contornos de brillo de d3-celestial (BSD-3-Clause), rasterizados y suavizados.
+Via Lactea (milkyway_nasa.jpg, opcional): NASA/Goddard Space Flight Center Scientific Visualization Studio, Deep Star Maps 2020 (SVS 4851); Gaia DR2: ESA/Gaia/DPAC.
+
+Nombres y designaciones de estrellas (public/star-names.json): d3-celestial (starnames.json) de Olaf Frohn, licencia BSD-3-Clause; nombres propios IAU, Bayer, Flamsteed y números Hipparcos. Los 156 nombres en español de la lista corta tienen prioridad.
+
+Globo terrestre (public/earth): imágenes de la NASA. Día: Blue Marble Next Generation con topografía, agosto de 2004 (NASA Earth Observatory; Reto Stockli, NASA/GSFC). Noche: Black Marble 2016 (NASA Earth Observatory, datos Suomi NPP VIIRS). Ambas reducidas a 4096×2048. Nubes: capa derivada de NASA/Goddard Space Flight Center Scientific Visualization Studio (SVS 3615, restando la Tierra sin nubes a la Tierra con nubes), con datos de Blue Marble Next Generation y CPC Cloud Composite. La máscara de océanos se calculó a partir de la imagen de día.
+Tipografías: Jost y Cormorant (SIL Open Font License) mediante @fontsource-variable.
+
+Zona horaria por coordenadas: tz-lookup (CC0). Sus datos de zonas vienen de timezone-boundary-builder (ODbL 1.0), con datos de OpenStreetMap: © OpenStreetMap contributors. Sin conexión a internet.
+
+Detalle del globo: teselas de NASA GIBS (Global Imagery Browse Services, https://earthdata.nasa.gov/gibs), imágenes Blue Marble de la NASA, descargadas en vivo cuando la cámara se acerca. We acknowledge the use of imagery provided by services from NASA's GIBS, part of NASA's ESDIS.
+Logotipos (public/brand): Caeliscope y Hermetica Labs, marcas de Hermetica Labs.
+
+Texturas de planetas y del Sol (public/planets): Copyright (c) 2010-2017, Solar System Scope, https://www.solarsystemscope.com/textures, licencia CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Se redujeron a JPEG; la tira de los anillos de Saturno se derivó de su imagen de anillos. La orientación de los rasgos de superficie es decorativa (giran al ritmo real, pero no están calibradas a un meridiano origen); las manchas solares de la textura no son las de hoy.
+
+Textos completos de las licencias: THIRD-PARTY-LICENSES.txt

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caeliscope · Demo Proof</title>
+<link rel="icon" type="image/svg+xml" href="/brand/caeliscope-icon.svg">
+<style>
+  :root { --oro: #dcb450; --lila: #b4a5ff; --vidrio: rgba(5, 7, 13, .62); color-scheme: dark; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #05070d; font-family: Georgia, serif; color: #eee; }
+  canvas { display: block; width: 100vw; height: 100vh; touch-action: none; cursor: grab; }
+  canvas:active { cursor: grabbing; }
+  #labels { position: fixed; inset: 0; pointer-events: none; cursor: default; }
+  .hud { position: fixed; background: var(--vidrio); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; font-size: 13px; line-height: 1.7; }
+  .clean .hud { display: none; }
+  [hidden] { display: none !important; }
+  body.mode-globe .skyhud { display: none !important; }
+  body.mode-globe #labels { display: none; }
+  #globeLayer { position: fixed; inset: 0; touch-action: none; cursor: grab; z-index: 2; }
+  #globeLayer:active { cursor: grabbing; }
+  body:not(.mode-globe) #globeLayer { display: none; }
+  #splash { position: fixed; inset: 0; pointer-events: none; z-index: 4; color: #eef2fb; }
+  #splash > * { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; white-space: nowrap; text-align: center; }
+  #sVig { width: min(96vw, 96vmin + 20vw); height: 52vmin; background: radial-gradient(closest-side, rgba(2,4,10,.78), rgba(2,4,10,.4) 60%, rgba(2,4,10,0)); }
+  #sHerm, #sTitle { opacity: var(--a, 0); transform: translate(-50%, -50%) scale(calc(1.04 - 0.04 * var(--a, 0))); filter: blur(calc((1 - var(--a, 0)) * 9px)); user-select: none; }
+  #sHerm { width: clamp(130px, 15vw, 210px); height: auto; filter: blur(calc((1 - var(--a, 0)) * 9px)) drop-shadow(0 0 22px rgba(70, 170, 255, .28)); }
+  #sTitle { width: clamp(270px, 40vw, 560px); height: auto; filter: blur(calc((1 - var(--a, 0)) * 9px)) drop-shadow(0 0 16px rgba(94, 223, 229, .55)) drop-shadow(0 0 46px rgba(94, 223, 229, .22)); }
+  #sSub { top: calc(50% + clamp(62px, 8.8vw, 124px)); font-family: 'Jost Variable', 'Jost', 'Helvetica Neue', Arial, sans-serif; font-weight: 300; font-size: clamp(9px, 1vw, 12px); letter-spacing: .5em; text-transform: uppercase; padding-left: .5em; color: #b9e9ec; text-shadow: 0 0 6px rgba(0,0,0,.95), 0 0 18px rgba(0,0,0,.95); }
+  #sSkip { top: auto; bottom: 26px; transform: translateX(-50%); font-family: 'Jost Variable', 'Jost', Arial, sans-serif; font-weight: 300; font-size: 11px; letter-spacing: .12em; color: #aab4cc; }
+  #veil { position: fixed; inset: 0; z-index: 6; pointer-events: none; opacity: 0; background: #000; }
+  #gpanel { top: 14px; left: 14px; width: 262px; padding: 12px 14px; z-index: 5; opacity: 0; pointer-events: none; display: none; }
+  body.mode-globe #gpanel { display: block; }
+  .g-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .g-icon { height: 30px; width: auto; filter: drop-shadow(0 0 8px rgba(94,223,229,.45)); } .g-word { height: 13px; width: auto; }
+  .g-row { display: flex; gap: 6px; align-items: center; margin: 6px 0; }
+  .g-row input { width: 74px; }
+  .g-row button { padding: 2px 10px; }
+  #gGo { width: 100%; margin: 6px 0 8px; padding: 7px 10px; background: rgba(220,180,80,.22); border-color: var(--oro); color: #fff; }
+  #gGo:hover { background: rgba(220,180,80,.38); }
+  kbd { font: inherit; opacity: .7; margin-left: 6px; }
+  .g-hint, #gTime, #gDetail { display: block; line-height: 1.5; margin-bottom: 4px; }
+  #card { left: 14px; bottom: 14px; width: 330px; box-sizing: border-box; max-height: 46vh; overflow: auto; padding: 12px 14px; }
+  #card table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+  #card td { padding: 1px 0; vertical-align: top; font-variant-numeric: tabular-nums; }
+  #card td:first-child { color: var(--lila); padding-right: 12px; white-space: nowrap; }
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  #cTitle { font-size: 20px; color: #fff; line-height: 1.2; }
+  #cClose { padding: 0 8px; }
+  .card-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  #cTrack, #cPath, #cZoom { padding: 0 8px; white-space: nowrap; }
+  #cPath[aria-pressed="true"], #cTrack[aria-pressed="true"] { background: rgba(220,180,80,.28); border-color: var(--oro); opacity: 1; }
+  #cTrack[aria-pressed="false"], #cPath[aria-pressed="false"] { opacity: 1; }
+  #trackChip { top: 14px; left: 50%; transform: translateX(-50%); padding: 3px 6px 3px 14px; display: flex; align-items: center; gap: 8px; color: var(--oro); }
+  #trackChip button { padding: 0 8px; }
+  #card a { color: #6fd0d8; font-size: 12px; }
+  :root { --pw: 280px; }   /* ancho exterior del panel izquierdo del cielo (250 + relleno + borde) */
+  #skyLogo { position: fixed; top: 12px; left: 14px; width: var(--pw); display: flex; align-items: center; justify-content: space-between; pointer-events: none; z-index: 6; filter: drop-shadow(0 1px 6px rgba(0,0,0,.6)); }
+  #skyLogo .g-icon { width: 21.7%; height: auto; } #skyLogo .g-word { width: 73.3%; height: auto; }
+  #info { top: calc(12px + var(--pw) * 0.245 + 12px); left: 14px; padding: 10px 14px; width: 250px; }
+  #side { top: 14px; right: 14px; padding: 10px 14px; width: 230px; z-index: 8; }
+  #info b { color: var(--oro); font-weight: normal; }
+  small { color: var(--lila); }
+  hr { border: 0; border-top: 1px solid rgba(255,255,255,.1); margin: 6px 0; }
+  input, button, select { font: inherit; font-size: 13px; color: #eee; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.2); border-radius: 7px; padding: 4px 9px; }
+  input[type=number] { width: 66px; padding: 1px 4px; font-size: 12px; }
+  #q { width: 100%; box-sizing: border-box; margin-bottom: 8px; }
+  input[type=range] { padding: 0; width: 100%; }
+  button, select { cursor: pointer; }
+  button:hover { background: rgba(255,255,255,.18); }
+  button[aria-pressed="false"] { opacity: .5; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--oro); outline-offset: 1px; }
+  .layers { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  #msg { color: var(--lila); min-height: 1.2em; }
+  .ecl { color: #ff9a6a; min-height: 1.2em; }
+  /* paneles minimizables */
+  .phdr { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: -2px 0 6px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--lila); }
+  .minbtn { width: 22px; height: 22px; padding: 0; line-height: 1; border-radius: 6px; font-size: 15px; flex: none; }
+  .hud.mini { width: auto !important; min-width: 0; max-height: none !important; overflow: hidden; }
+  .hud.mini > :not(.phdr):not(.card-head) { display: none !important; }
+  .hud.mini .phdr { margin: 0; }
+  #card.mini .card-head ~ *, #card.mini #cSub, #card.mini #cTrack, #card.mini #cZoom, #card.mini #cPath, #card.mini #cAll { display: none !important; }
+  #card.mini .card-head { align-items: center; }
+  #card.mini #cTitle { font-size: 15px; }
+  /* trayectorias */
+  .pdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--pc, #ffd23c); margin-right: 5px; vertical-align: -1px; box-shadow: 0 0 6px var(--pc, #ffd23c); }
+  #cPath[aria-pressed="true"], #cAll[aria-pressed="true"] { background: color-mix(in srgb, var(--pc, #ffd23c) 30%, transparent); border-color: var(--pc, #ffd23c); }
+  #cAll { padding: 0 8px; white-space: nowrap; }
+  #cAll[aria-pressed="false"] { opacity: 1; }
+  #pathChip { top: 52px; left: 50%; transform: translateX(-50%); max-width: min(46vw, 560px); padding: 4px 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; }
+  #pathChip[hidden] { display: none; }
+  #pathChip .pp { display: inline-flex; align-items: center; gap: 4px; padding: 0 4px 0 8px; border-radius: 12px; border: 1px solid var(--pc); background: color-mix(in srgb, var(--pc) 18%, transparent); font-size: 12px; }
+  #pathChip .pp button { padding: 0 5px; border: 0; background: transparent; font-size: 12px; }
+  /* barra de tiempo */
+  #bar { bottom: 14px; left: 50%; transform: translateX(-50%); width: min(540px, 96vw); box-sizing: border-box; padding: 8px 14px 10px; }
+  .tb-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .drums { display: flex; align-items: center; gap: 2px; font-size: 26px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; line-height: 1; }
+  .drum { display: flex; flex-direction: column; align-items: center; }
+  .drum .val { padding: 2px 0; min-width: 1.15em; text-align: center; } .drum .val.y { min-width: 2.4em; }
+  .drum button { border: 0; background: transparent; padding: 0 8px; font-size: 11px; line-height: 14px; opacity: .8; color: #fff; }
+  .drum button:hover { opacity: 1; background: rgba(255,255,255,.14); }
+  .drums .sep { opacity: .55; padding: 0 1px; }
+  .tb-mid { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  .tb-mid button, #fsBtn { padding: 2px 6px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+  .tb-mid svg, #fsBtn svg, .tb-cal svg { width: 18px; height: 18px; fill: currentColor; }
+  #dayRange { -webkit-appearance: none; appearance: none; height: 22px; margin: 8px 0 0; border: 0; border-radius: 3px; background: #1d5f78; }
+  #dayRange::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #2f8cff; border: 2px solid #fff; cursor: pointer; }
+  #dayRange::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: #2f8cff; border: 2px solid #fff; cursor: pointer; }
+  #dayLabel { display: block; margin: 2px 0 6px; }
+  .speedrow { display: flex; gap: 4px; justify-content: center; flex-wrap: nowrap; }
+  .speedrow button { padding: 2px 6px; font-size: 12px; white-space: nowrap; flex: 1 1 0; }
+  .speedrow button.on { background: rgba(220,180,80,.3); border-color: var(--oro); color: #fff; opacity: 1; }
+  .tb-go { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+  .tb-go button { padding: 2px 8px; font-size: 12px; }
+  #side > small { display: block; margin: 2px 0; }
+  #clock { white-space: nowrap; overflow: hidden; font-variant-numeric: tabular-nums; }
+  .langsw { display: inline-flex; gap: 3px; margin-left: auto; letter-spacing: 0; text-transform: none; }
+  .langsw button { padding: 0 7px; font-size: 11px; line-height: 20px; letter-spacing: .06em; }
+  .langsw button[aria-pressed="true"] { background: rgba(220,180,80,.28); border-color: var(--oro); opacity: 1; }
+  .langsw button[aria-pressed="false"] { opacity: .6; }
+  .langsw.wide { display: flex; margin: 2px 0 6px; } .langsw.wide button { flex: 1; font-size: 12px; }
+  .evmenu { position: relative; margin: 2px 0 6px; }
+  #evBtn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; }
+  #evList, #evList ul { list-style: none; margin: 0; padding: 4px; background: #080b14; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; box-shadow: 0 6px 22px rgba(0,0,0,.55); z-index: 20; }
+  #evList { position: absolute; left: 0; right: 0; top: calc(100% + 3px); }
+  #evList li { position: relative; }
+  #evList li > button { width: 100%; display: flex; justify-content: space-between; gap: 10px; text-align: left; border: 0; background: transparent; padding: 4px 8px; }
+  #evList li > button:hover, #evList li > button:focus-visible, #evList li.open > button { background: rgba(255,255,255,.14); }
+  #evList li > button.cur { color: var(--oro); }
+  #evList li > ul { position: absolute; right: calc(100% + 4px); top: -5px; min-width: 130px; display: none; }
+  #evList li.open > ul { display: block; }
+  #evList .note { display: block; padding: 3px 8px 2px; font-size: 11px; color: var(--lila); }
+  #calPop { left: 50%; bottom: calc(var(--barH, 150px) + 22px); transform: translateX(-50%); padding: 12px 14px; z-index: 12; width: 290px; box-sizing: border-box; }
+  #calPop label { white-space: nowrap; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 6px 0; color: var(--lila); }
+  #calPop input { width: 140px; color-scheme: dark; }
+  .cal-title { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--lila); margin-bottom: 4px; }
+  .cal-err { color: #ff9a6a; min-height: 1.2em; font-size: 12px; }
+  .cal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+  .cal-btns .primary, #calGo { background: rgba(220,180,80,.25); border-color: var(--oro); color: #fff; padding: 4px 18px; }
+  #calGo:hover { background: rgba(220,180,80,.4); }
+  #fovBox { left: 50%; bottom: calc(var(--barH, 150px) + 28px); transform: translateX(-50%); padding: 3px 14px; font-size: 14px; color: #fff; letter-spacing: .04em; opacity: 0; transition: opacity .35s; pointer-events: none; font-variant-numeric: tabular-nums; }
+  #fovBox.show { opacity: 1; }
+  @media (max-width: 700px) { :root { --pw: 230px; } #info { width: 200px; font-size: 12px; } #side { top: auto; bottom: calc(var(--barH, 150px) + 24px); width: 190px; } .drums { font-size: 22px; } }
+  @media (max-width: 900px) { #card { bottom: calc(var(--barH, 150px) + 24px); } }
+</style>
+</head>
+<body class="mode-globe">
+<canvas id="c"></canvas>
+<canvas id="labels"></canvas>
+<div id="globeLayer"></div>
+<div id="splash" aria-hidden="true">
+  <div id="sVig"></div>
+  <img id="sHerm" src="/brand/hermetica.png" alt="Hermetica Labs" draggable="false">
+  <img id="sTitle" src="/brand/caeliscope.svg" alt="Caeliscope, powered by Caelis Engine" draggable="false">
+  <div id="sSub">Demo Proof</div>
+  <div id="sSkip" data-i18n="splash.skip">Tap, drag or press a key to continue</div>
+</div>
+<div id="veil"></div>
+<div id="gpanel" class="hud">
+  <div class="g-brand"><img src="/brand/caeliscope-icon.svg" alt="" class="g-icon"><img src="/brand/caeliscope-word.svg" alt="Caeliscope" class="g-word"><div class="langsw" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true">EN</button><button data-lang="es" aria-pressed="false">ES</button></div></div>
+  <small data-i18n="globe.title">Observer location</small>
+  <div class="g-row">Lat <input id="glat" type="number" step="0.01" min="-90" max="90" data-i18n-aria="globe.lat"> Lon <input id="glon" type="number" step="0.01" min="-180" max="180" data-i18n-aria="globe.lon"></div>
+  <div class="g-row"><button id="gGeo" data-i18n="globe.geo" data-i18n-title="globe.geoTitle">My location</button><button id="gZm" data-i18n-aria="globe.zoomOut">&minus;</button><button id="gZp" data-i18n-aria="globe.zoomIn">+</button></div>
+  <button id="gGo" class="primary"><span data-i18n="globe.go">See the sky from here</span> <kbd>&crarr;</kbd></button>
+  <small class="g-hint" data-i18n="globe.hint"></small>
+  <small id="gTime"></small>
+  <small id="gDetail"></small>
+</div>
+<div id="skyLogo" class="skyhud"><img src="/brand/caeliscope-icon.svg" alt="" class="g-icon"><img src="/brand/caeliscope-word.svg" alt="Caeliscope" class="g-word"></div>
+<div id="info" class="hud skyhud" data-min="info">
+  <div class="phdr"><span data-i18n="info.title">Georeference</span><button class="minbtn" type="button">–</button></div>
+  <div id="clock"></div>
+  <div>Lat <input id="lat" type="number" step="0.01" value="-33.45"> Lon <input id="lon" type="number" step="0.01" value="-70.66"></div>
+  <button id="geo" data-i18n="info.geo" data-i18n-title="globe.geoTitle">My location</button> <button id="newLoc" data-i18n="info.new" data-i18n-title="info.newTitle">📍 New location</button>
+  <hr>
+  <div id="sol"></div><div id="luna"></div>
+  <div id="ecl" class="ecl"></div>
+  <small id="perf"></small>
+  <div id="msg"></div>
+</div>
+<div id="side" class="hud skyhud" data-min="side">
+  <div class="phdr"><span data-i18n="opt.title">Options</span><span class="langsw" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true" title="English">EN</button><button data-lang="es" aria-pressed="false" title="Español">ES</button></span><button class="minbtn" type="button">–</button></div>
+  <input id="q" list="objs" data-i18n-ph="opt.search" data-i18n-aria="opt.searchAria" autocomplete="off">
+  <datalist id="objs"></datalist>
+  <div class="layers">
+    <button id="tConst" aria-pressed="false" data-i18n="opt.const"></button><button id="tNames" aria-pressed="false" data-i18n="opt.names"></button>
+    <button id="tMW" aria-pressed="true" data-i18n="opt.mw"></button><button id="tGround" aria-pressed="true" data-i18n="opt.ground"></button>
+    <button id="tAz" aria-pressed="false" data-i18n="opt.az" data-i18n-title="opt.key.z"></button><button id="tEq" aria-pressed="false" data-i18n="opt.eq" data-i18n-title="opt.key.e"></button>
+    <button id="tEcl" aria-pressed="false" data-i18n="opt.ecl" data-i18n-title="opt.key.4"></button><button id="tMer" aria-pressed="false" data-i18n="opt.mer" data-i18n-title="opt.key.6"></button>
+  </div>
+  <small data-i18n="opt.land"></small>
+  <select id="land" data-i18n-aria="opt.landAria"><option value="1" selected data-i18n="opt.land.1"></option><option value="2" data-i18n="opt.land.2"></option><option value="3" data-i18n="opt.land.3"></option><option value="0" data-i18n="opt.land.0"></option></select>
+  <small data-i18n="opt.proj"></small>
+  <select id="proj" data-i18n-aria="opt.projAria"><option value="0" selected data-i18n="opt.proj.0"></option><option value="1" data-i18n="opt.proj.1"></option><option value="2" data-i18n="opt.proj.2"></option></select>
+  <small data-i18n="opt.mwLevel"></small>
+  <input id="mw" type="range" min="0" max="2.5" step="0.05" value="0.4">
+  <small id="danjonLbl"></small>
+  <input id="danjon" type="range" min="0" max="4" step="0.1" value="2">
+  <hr>
+  <small data-i18n="ev.title"></small>
+  <div class="evmenu" id="evMenu">
+    <button id="evBtn" aria-haspopup="true" aria-expanded="false"><span id="evLabel"></span><span class="car">▾</span></button>
+    <ul id="evList" role="menu" hidden></ul>
+  </div>
+  <div class="layers"><button id="evPrev" data-i18n="ev.prev"></button><button id="evNext" data-i18n="ev.next"></button></div>
+  <small data-i18n-html="opt.help"></small>
+</div>
+<div id="trackChip" class="hud skyhud" hidden><span id="trackName"></span><button id="trackStop" data-i18n-aria="chip.stop">✕</button></div>
+<div id="pathChip" class="hud skyhud" hidden></div>
+<div id="fovBox" class="hud skyhud" aria-live="polite"></div>
+<div id="card" class="hud skyhud" data-min="card" hidden>
+  <div class="card-head"><div><div id="cTitle"></div><small id="cSub"></small></div><div class="card-btns"><button id="cTrack" aria-pressed="false" data-i18n="card.follow" data-i18n-title="card.followTitle"></button><button id="cZoom" hidden data-i18n="card.zoom" data-i18n-title="card.zoomTitle"></button><button id="cPath" aria-pressed="false" data-i18n-title="card.pathTitle"><span class="pdot"></span><span data-i18n="card.path"></span></button><button id="cAll" aria-pressed="false" hidden data-i18n-title="card.allTitle"><span class="pdot"></span><span id="cAllT"></span></button><button class="minbtn" id="cMin" type="button">–</button><button id="cClose" data-i18n-aria="card.close">✕</button></div></div>
+  <table id="cRows"></table>
+  <a id="cWiki" target="_blank" rel="noopener" hidden data-i18n="card.wiki"></a>
+</div>
+<div id="bar" class="hud skyhud" data-min="bar">
+  <div class="phdr"><span data-i18n="time.title"></span><button class="minbtn" type="button">–</button></div>
+  <div class="tb-top">
+    <div class="drums" id="dDate"></div>
+    <div class="tb-mid">
+      <button id="now" data-i18n-title="time.now" data-i18n-aria="time.nowAria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3a9 9 0 1 0 8.5 12h-2.1A7 7 0 1 1 13 5a6.9 6.9 0 0 1 4.9 2L15 10h7V3l-2.6 2.6A9 9 0 0 0 13 3zm-1 5v5l4.2 2.5.8-1.3-3.5-2.1V8z"/></svg></button>
+      <button id="playPause" data-i18n-aria="time.pauseAria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
+    </div>
+    <div class="drums" id="dTime"></div>
+  </div>
+  <input id="dayRange" type="range" min="0" max="1439" step="1" value="0" data-i18n-aria="time.hourOfDay">
+  <small id="dayLabel"></small>
+  <div class="speedrow" id="speedRow">
+    <button data-sp="-600" data-i18n-title="time.back3">◀ ×3</button><button data-sp="-60" data-i18n-title="time.back2">◀ ×2</button><button data-sp="-30" data-i18n-title="time.back1">◀ ×1</button>
+    <button data-sp="1" data-i18n="time.real" data-i18n-title="time.realTitle"></button>
+    <button data-sp="30" data-i18n-title="time.fwd1">×1 ▶</button><button data-sp="60" data-i18n-title="time.fwd2">×2 ▶</button><button data-sp="600" data-i18n-title="time.fwd3">×3 ▶</button>
+  </div>
+  <div class="tb-go">
+    <button id="calBtn" class="tb-cal" data-i18n-title="cal.title" data-i18n-aria="cal.aria" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zM5 9h14v11H5z"/></svg></button>
+    <button id="fsBtn" data-i18n-title="time.fs" data-i18n-aria="time.fsAria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z"/></svg></button>
+  </div>
+</div>
+<div id="calPop" class="hud skyhud" role="dialog" data-i18n-aria="cal.title" hidden>
+  <div class="cal-title" data-i18n="cal.title"></div>
+  <label><span data-i18n="cal.date"></span><input id="calDate" type="date"></label>
+  <label><span data-i18n="cal.time"></span><input id="calTime" type="time"></label>
+  <div id="calErr" class="cal-err" role="alert"></div>
+  <div class="cal-btns"><button id="calCancel" data-i18n="cal.cancel"></button><button id="calGo" class="primary" data-i18n="cal.go"></button></div>
+</div>
+<script type="module" src="/src/main.mjs"></script>
+</body>
+</html>
