@@ -1,7 +1,7 @@
-# Caeliscope
+﻿# Caeliscope
 
 [![CI](https://img.shields.io/github/actions/workflow/status/HermeticaLabs/Caeliscope/ci.yml?branch=main&label=CI)](https://github.com/HermeticaLabs/Caeliscope/actions/workflows/ci.yml)
-[![demo](https://img.shields.io/badge/demo-live-brightgreen)](https://hermeticalabs.github.io/caeliscope/)
+[![demo](https://img.shields.io/badge/demo-live-brightgreen)](https://hermeticalabs.github.io/Caeliscope/)
 [![license](https://img.shields.io/badge/license-AGPL--3.0--or--later-orange)](LICENSE)
 [![stars](https://img.shields.io/github/stars/HermeticaLabs/Caeliscope?label=stars&color=blue)](https://github.com/HermeticaLabs/Caeliscope/stargazers)
 [![powered by](https://img.shields.io/badge/powered%20by-Caelis%20Engine-5edfe5)](https://github.com/hermeticalabs/caelis-engine)
@@ -36,7 +36,7 @@ Every position, distance, phase and time shown here comes from [Caelis Engine](h
 
 ## Live demo
 
-<!-- TODO: https://hermeticalabs.github.io/caeliscope/ once deployed -->
+<!-- TODO: https://hermeticalabs.github.io/Caeliscope/ once deployed -->
 _Coming soon._
 
 ## Run it locally
@@ -90,4 +90,5 @@ Third-party data and assets (star catalogue, textures, tiles, fonts) keep their 
 
 Issues and pull requests are welcome; see [`CONTRIBUTING.md`](CONTRIBUTING.md). For security reports see [`SECURITY.md`](SECURITY.md).
 
-Español: [`README.es.md`](README.es.md)
+EspaÃ±ol: [`README.es.md`](README.es.md)
+
