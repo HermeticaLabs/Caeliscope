@@ -6,6 +6,7 @@ import { dirFromAltAz, skyPalette, extinction, moonOrientation, eclipseAlt } fro
 import { skyRotation, magLimit, buildStarArrays, buildSegmentPositions, lineAlpha, labelMagLimit, equatorialVector, horizontalOf, normName, precessionMatrix } from './stars.mjs';
 import { fmtHMS, fmtDMS, planetPhase, elongationDeg, riseSetFromSamples, refractionDeg } from './astro-fmt.mjs';
 import { findPhase, findSunLongitude, findEclipseWhere, localSolarInfo, localSolarKind, lunarEclipseInfo } from './events.mjs';
+import { TEXT_STEPS, nextTextStep, clampOpacity, parsePrefs } from './ui-prefs.mjs';
 import { t as T, getLang, setLang, onLang, initLang, applyStatic, locale, bodyName, conName, starName } from './i18n.mjs';
 import { azimuthalGrid, equatorialGrid, eclipticLine, meridianLine } from './grids.mjs';
 import { MIN_FOV, maxFov, viewBasis, focalPx, projectDir, unprojectPx } from './projection.mjs';
@@ -22,6 +23,11 @@ import { PLANET_DATA, angularRadius, apparentDiameterArcsec, centralMeridianTurn
 const BASE = import.meta.env?.BASE_URL ?? '/';   // ruta base del despliegue (raíz o subcarpeta)
 
 initLang();
+// Accesibilidad: tamaño del texto (3 pasos, todo el texto crece en proporción) y opacidad de los paneles (solo el fondo)
+const UI_KEY = 'caeliscope.ui';
+const ui = (() => { try { return parsePrefs(localStorage.getItem(UI_KEY)); } catch { return parsePrefs(null); } })();
+const tsNow = () => TEXT_STEPS[ui.ts];
+const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch { /* sin almacenamiento */ } };
 const { getSnapshotAt, deltaT } = CaelisAPI;
 const D2R = Math.PI / 180;
 const $ = (id) => document.getElementById(id);
@@ -262,7 +268,7 @@ let fitKey = '';
 function fitClock(key) {
   const el = $('clock'); if (key === fitKey || !el.clientWidth) return;
   el.style.fontSize = '';
-  if (el.scrollWidth > el.clientWidth) el.style.fontSize = Math.max(8, 13 * (el.clientWidth / el.scrollWidth) * 0.97).toFixed(2) + 'px';
+  if (el.scrollWidth > el.clientWidth) el.style.fontSize = Math.max(8, parseFloat(getComputedStyle(el).fontSize) * (el.clientWidth / el.scrollWidth) * 0.97).toFixed(2) + 'px';
   fitKey = key;
 }
 addEventListener('resize', () => { fitKey = ''; });
@@ -335,7 +341,7 @@ function drawLabels() {
   const at = (e, M = rotM) => atV(rotVec(M, e));
   octx.textBaseline = 'middle';
   if (showNames) {
-    octx.font = '13px Georgia'; octx.textAlign = 'left'; const mlim = labelMagLimit(view.fov);
+    octx.font = `${13 * tsNow()}px Georgia`; octx.textAlign = 'left'; const mlim = labelMagLimit(view.fov);
     for (const s of names) {
       if (s.mag > mlim || s.mag > lim - 0.5) continue;
       const p = at(s.e); if (!p) continue;
@@ -343,10 +349,10 @@ function drawLabels() {
     }
   }
   if (showConst && a > 0.02) {
-    octx.font = 'italic 12px Georgia'; octx.textAlign = 'center'; octx.fillStyle = `rgba(180,165,255,${0.8 * a})`;
+    octx.font = `italic ${12 * tsNow()}px Georgia`; octx.textAlign = 'center'; octx.fillStyle = `rgba(180,165,255,${0.8 * a})`;
     for (const c of conLabels) { const p = at(c.e); if (p) octx.fillText(conName(c.name), p[0], p[1]); }
   }
-  octx.font = '11px Georgia'; octx.textAlign = 'center';
+  octx.font = `${11 * tsNow()}px Georgia`; octx.textAlign = 'center';
   if (showAzL) {
     octx.fillStyle = 'rgba(110,200,210,0.85)';
     for (let az = 30; az < 360; az += 30) { if (az % 90) { const p = atV(dirFromAltAz(1.5, az)); if (p) octx.fillText(az + '°', p[0], p[1]); } }
@@ -357,9 +363,9 @@ function drawLabels() {
     for (const dec of [-60, -30, 30, 60]) { const p = at(equatorialVector(0, dec), rotDate); if (p) octx.fillText((dec > 0 ? '+' : '') + dec + '°', p[0] + 14, p[1]); }
   }
   // puntos cardinales, Sol, Luna y planetas
-  octx.font = '14px Georgia'; octx.fillStyle = '#fff';
+  octx.font = `${14 * tsNow()}px Georgia`; octx.fillStyle = '#fff';
   [['N', 0], ['E', 90], ['S', 180], [getLang() === 'es' ? 'O' : 'W', 270]].forEach(([c, az]) => { const p = atV(dirFromAltAz(Math.max(3, skylineAt(land, az) + 1.3), az)); if (p) octx.fillText(c, p[0], p[1]); });
-  octx.font = '13px Georgia';
+  octx.font = `${13 * tsNow()}px Georgia`;
   const tag = (key, text, color, dy) => {
     const b = last[key]; if (!b) return;
     const p = atV(dirFromAltAz(b.alt_apparent_deg, b.az_deg)); if (!p) return;
@@ -1067,6 +1073,15 @@ for (const id of ['lat', 'lon']) $(id).onchange = () => {
 };
 
 // ── Idioma: inglés por defecto; el botón EN / ES cambia la interfaz, los nombres de los astros y las constelaciones ──
+function applyUi() {
+  const r = document.documentElement.style;
+  r.setProperty('--ts', tsNow()); r.setProperty('--op', ui.op);
+  for (const b of document.querySelectorAll('.txtsw')) b.querySelectorAll('span').forEach((sp, i) => sp.classList.toggle('on', i === ui.ts));
+  $('panelOp').value = Math.round(ui.op * 100);
+  fitKey = ''; dirty = true;
+}
+for (const b of document.querySelectorAll('.txtsw')) b.onclick = () => { ui.ts = nextTextStep(ui.ts); saveUi(); applyUi(); };
+$('panelOp').oninput = (e) => { ui.op = clampOpacity(+e.target.value / 100); saveUi(); applyUi(); };
 function applyLang() {
   applyStatic(); rebuildObjList(); buildEvMenu(); relabelDrums(); setSpeed(speed); setDanjonLbl(); renderGDetail();
   for (const f of minApply) f();
@@ -1197,6 +1212,6 @@ function frame(t) {
   }
   requestAnimationFrame(frame);
 }
-applyLang();
+applyUi(); applyLang();
 requestAnimationFrame(frame);
 window.__sky = { setTrailMode, zoomBody(key) { sel = { kind: 'body', key }; refreshCard(); zoomTo(sel); }, get last() { return last; }, get paths() { return paths; }, get trails() { return trails; }, globe, goSky, newLocation, skip() { splashPoke(); }, setLang, get mode() { return appMode; }, get flowT() { return flowT; }, get track() { return track; }, get locked() { return trackLocked; }, setLandscape, get mags() { return mags; }, get land() { return land; }, view, obs, get simMs() { return simMs; }, set simMs(v) { simMs = v; dirty = true; }, set speed(v) { speed = v; }, update, get eclNow() { return eclNow; }, set danjon(v) { danjon = v; dirty = true; } };   // para pruebas automáticas
