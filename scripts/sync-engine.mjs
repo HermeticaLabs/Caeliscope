@@ -1,9 +1,9 @@
 // Prepara CaelisEngine.js (CommonJS) para el navegador SIN modificar el repo del motor.
 // Uso: npm run sync            (usa la ruta por defecto)
-//      node scripts/sync-engine.mjs "D:/otra/ruta/CaelisEngine.js"
+//      node scripts/sync-engine.mjs "ruta/a/CaelisEngine.js"
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
-const SRC = process.argv[2] || 'C:/caelis-engine-v4/core/CaelisEngine.js';
+const SRC = process.argv[2] || '../caelis-engine/core/CaelisEngine.js';
 const OUT = 'src/engine/caelis-engine.generated.mjs';
 
 const code = readFileSync(SRC, 'utf8');

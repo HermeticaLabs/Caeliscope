@@ -4,6 +4,6 @@ title: "Caeliscope"
 type: software
 authors:
   - name: "Hermetica Labs"
-repository-code: "https://github.com/hermeticalabs/caeliscope"
+repository-code: "https://github.com/HermeticaLabs/Caeliscope"
 license: AGPL-3.0-or-later
 version: 0.1.0

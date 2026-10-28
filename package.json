@@ -21,13 +21,13 @@
   "description": "Caeliscope: an immersive sky viewer and technical demo built on Caelis Engine.",
   "license": "AGPL-3.0-or-later",
   "author": "Hermetica Labs",
-  "homepage": "https://github.com/hermeticalabs/caeliscope",
+  "homepage": "https://hermeticalabs.github.io/Caeliscope/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hermeticalabs/caeliscope.git"
+    "url": "git+https://github.com/HermeticaLabs/Caeliscope.git"
   },
   "bugs": {
-    "url": "https://github.com/hermeticalabs/caeliscope/issues"
+    "url": "https://github.com/HermeticaLabs/Caeliscope/issues"
   },
   "keywords": [
     "astronomy",
