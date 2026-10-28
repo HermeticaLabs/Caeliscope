@@ -1,5 +1,5 @@
 // Seguimiento de un objeto: la cámara se mantiene centrada en él mientras pasa el tiempo.
-// La montura es altacimutal (el horizonte siempre queda nivelado), como en Stellarium con el objeto bloqueado.
+// La montura es altacimutal (el horizonte siempre queda nivelado), como en un telescopio con montura altacimutal.
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 
 // Diferencia de azimut por el camino más corto (-180..180) de "from" hacia "to".

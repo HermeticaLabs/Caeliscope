@@ -1,6 +1,6 @@
 // Proyecciones del cielo visto desde el centro de la esfera (el observador).
 // Las mismas fórmulas están en el GLSL (shaders.mjs): aquí sirven para etiquetas, clics y pruebas.
-//   0 = estereográfica (conforme: los círculos siguen siendo círculos; la que usa Stellarium por defecto)
+//   0 = estereográfica (conforme: los círculos siguen siendo círculos)
 //   1 = equidistante (ojo de pez: la distancia en pantalla es proporcional al ángulo)
 //   2 = rectilínea (perspectiva de cámara: estira y ovala los objetos hacia los bordes)
 import { dirFromAltAz } from './sky-math.mjs';

@@ -124,7 +124,7 @@ test('búsqueda: ignora tildes y mayúsculas', () => {
 import { fmtHMS, fmtDMS, planetPhase, refractionDeg, riseSetFromSamples, elongationDeg } from '../src/astro-fmt.mjs';
 import { azimuthalGrid, equatorialGrid, eclipticLine, meridianLine } from '../src/grids.mjs';
 
-test('formato: AR en horas y ángulos en grados, como Stellarium', () => {
+test('formato: AR en horas y ángulos en grados, formato astronómico estándar', () => {
   assert.equal(fmtHMS(11.1279), '00h 44m 30.7s');
   assert.equal(fmtDMS(1 + 50 / 60 + 5.8 / 3600), '+01° 50′ 05.8″');
   assert.equal(fmtDMS(75 + 36 / 60 + 58 / 3600, false, 3), '075° 36′ 58.0″');

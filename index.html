@@ -6,12 +6,13 @@
 <title>Caeliscope · Demo Proof</title>
 <link rel="icon" type="image/svg+xml" href="/brand/caeliscope-icon.svg">
 <style>
-  :root { --oro: #dcb450; --lila: #b4a5ff; --vidrio: rgba(5, 7, 13, .62); color-scheme: dark; }
+  :root { --oro: #dcb450; --lila: #b4a5ff; --cian: #5edfe5; --vidrio: rgba(5, 7, 13, .62); --ui: 'Jost Variable', 'Jost', 'Helvetica Neue', Arial, sans-serif; color-scheme: dark; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #05070d; font-family: Georgia, serif; color: #eee; }
   canvas { display: block; width: 100vw; height: 100vh; touch-action: none; cursor: grab; }
   canvas:active { cursor: grabbing; }
   #labels { position: fixed; inset: 0; pointer-events: none; cursor: default; }
-  .hud { position: fixed; background: var(--vidrio); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; font-size: 13px; line-height: 1.7; }
+  /* Identidad propia: cristal oscuro con filo dorado arriba y trazo cian, esquina inferior izquierda casi recta (como la muesca de un instrumento), tipografía Jost */
+  .hud { position: fixed; font-family: var(--ui); background: linear-gradient(165deg, rgba(14, 21, 38, .8), rgba(4, 6, 12, .74)); backdrop-filter: blur(10px) saturate(1.2); border: 1px solid rgba(94, 223, 229, .16); border-top-color: rgba(220, 180, 80, .45); border-radius: 16px 16px 16px 3px; box-shadow: 0 8px 30px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .05); font-size: 13px; line-height: 1.7; }
   .clean .hud { display: none; }
   [hidden] { display: none !important; }
   body.mode-globe .skyhud { display: none !important; }
@@ -35,7 +36,7 @@
   .g-row { display: flex; gap: 6px; align-items: center; margin: 6px 0; }
   .g-row input { width: 74px; }
   .g-row button { padding: 2px 10px; }
-  #gGo { width: 100%; margin: 6px 0 8px; padding: 7px 10px; background: rgba(220,180,80,.22); border-color: var(--oro); color: #fff; }
+  #gGo { width: 100%; margin: 6px 0 8px; padding: 7px 10px; background: rgba(220,180,80,.22); border-color: var(--oro); color: #fff; border-radius: 12px; }
   #gGo:hover { background: rgba(220,180,80,.38); }
   kbd { font: inherit; opacity: .7; margin-left: 6px; }
   .g-hint, #gTime, #gDetail { display: block; line-height: 1.5; margin-bottom: 4px; }
@@ -59,22 +60,32 @@
   #info { top: calc(12px + var(--pw) * 0.245 + 12px); left: 14px; padding: 10px 14px; width: 250px; }
   #side { top: 14px; right: 14px; padding: 10px 14px; width: 230px; z-index: 8; }
   #info b { color: var(--oro); font-weight: normal; }
-  small { color: var(--lila); }
-  hr { border: 0; border-top: 1px solid rgba(255,255,255,.1); margin: 6px 0; }
-  input, button, select { font: inherit; font-size: 13px; color: #eee; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.2); border-radius: 7px; padding: 4px 9px; }
-  input[type=number] { width: 66px; padding: 1px 4px; font-size: 12px; }
-  #q { width: 100%; box-sizing: border-box; margin-bottom: 8px; }
+  small { color: var(--lila); font-family: var(--ui); }
+  hr { border: 0; border-top: 1px solid rgba(220, 180, 80, .22); margin: 8px 0; }
+  input, button, select { font: inherit; font-family: var(--ui); font-size: 13px; color: #eaf0fb; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.16); border-radius: 999px; padding: 4px 12px; }
+  input[type=number] { width: 66px; padding: 1px 8px; font-size: 12px; border-radius: 8px; }
+  select { border-radius: 10px; }
+  #q { width: 100%; box-sizing: border-box; margin-bottom: 8px; border-radius: 12px; }
+  .legal { display: block; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.08); }
+  .legal a { color: var(--cian); }
   input[type=range] { padding: 0; width: 100%; }
   button, select { cursor: pointer; }
-  button:hover { background: rgba(255,255,255,.18); }
-  button[aria-pressed="false"] { opacity: .5; }
+  button:hover { background: rgba(94, 223, 229, .14); border-color: rgba(94, 223, 229, .45); }
+  button[aria-pressed="false"] { opacity: .62; }
+  .layers button[aria-pressed] { display: inline-flex; align-items: center; gap: 6px; }
+  .layers button[aria-pressed]::before { content: ''; width: 7px; height: 7px; border-radius: 50%; border: 1px solid currentColor; box-sizing: border-box; }
+  .layers button[aria-pressed="true"] { opacity: 1; border-color: rgba(220, 180, 80, .7); background: rgba(220, 180, 80, .14); }
+  .layers button[aria-pressed="true"]::before { background: var(--oro); border-color: var(--oro); box-shadow: 0 0 6px var(--oro); }
   button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--oro); outline-offset: 1px; }
   .layers { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
   #msg { color: var(--lila); min-height: 1.2em; }
   .ecl { color: #ff9a6a; min-height: 1.2em; }
   /* paneles minimizables */
-  .phdr { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: -2px 0 6px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--lila); }
-  .minbtn { width: 22px; height: 22px; padding: 0; line-height: 1; border-radius: 6px; font-size: 15px; flex: none; }
+  .phdr { display: flex; align-items: center; gap: 10px; margin: -2px 0 8px; font-size: 11px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--oro); }
+  .phdr > span:first-child::before { content: '\25C6'; font-size: 7px; vertical-align: 2px; margin-right: 8px; color: var(--cian); }
+  .phdr > span:first-child { flex: 1; display: flex; align-items: center; }
+  .minbtn { width: 22px; height: 22px; padding: 0; line-height: 1; border-radius: 50%; font-size: 14px; flex: none; }
+  .hud.mini .chip, .hud.mini .langsw { display: none; }
   .hud.mini { width: auto !important; min-width: 0; max-height: none !important; overflow: hidden; }
   .hud.mini > :not(.phdr):not(.card-head) { display: none !important; }
   .hud.mini .phdr { margin: 0; }
@@ -90,28 +101,35 @@
   #pathChip[hidden] { display: none; }
   #pathChip .pp { display: inline-flex; align-items: center; gap: 4px; padding: 0 4px 0 8px; border-radius: 12px; border: 1px solid var(--pc); background: color-mix(in srgb, var(--pc) 18%, transparent); font-size: 12px; }
   #pathChip .pp button { padding: 0 5px; border: 0; background: transparent; font-size: 12px; }
-  /* barra de tiempo */
-  #bar { bottom: 14px; left: 50%; transform: translateX(-50%); width: min(540px, 96vw); box-sizing: border-box; padding: 8px 14px 10px; }
-  .tb-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .drums { display: flex; align-items: center; gap: 2px; font-size: 26px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; line-height: 1; }
-  .drum { display: flex; flex-direction: column; align-items: center; }
-  .drum .val { padding: 2px 0; min-width: 1.15em; text-align: center; } .drum .val.y { min-width: 2.4em; }
-  .drum button { border: 0; background: transparent; padding: 0 8px; font-size: 11px; line-height: 14px; opacity: .8; color: #fff; }
-  .drum button:hover { opacity: 1; background: rgba(255,255,255,.14); }
-  .drums .sep { opacity: .55; padding: 0 1px; }
-  .tb-mid { display: flex; flex-direction: column; gap: 6px; align-items: center; }
-  .tb-mid button, #fsBtn { padding: 2px 6px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
-  .tb-mid svg, #fsBtn svg, .tb-cal svg { width: 18px; height: 18px; fill: currentColor; }
-  #dayRange { -webkit-appearance: none; appearance: none; height: 22px; margin: 8px 0 0; border: 0; border-radius: 3px; background: #1d5f78; }
-  #dayRange::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #2f8cff; border: 2px solid #fff; cursor: pointer; }
-  #dayRange::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: #2f8cff; border: 2px solid #fff; cursor: pointer; }
-  #dayLabel { display: block; margin: 2px 0 6px; }
-  .speedrow { display: flex; gap: 4px; justify-content: center; flex-wrap: nowrap; }
-  .speedrow button { padding: 2px 6px; font-size: 12px; white-space: nowrap; flex: 1 1 0; }
-  .speedrow button.on { background: rgba(220,180,80,.3); border-color: var(--oro); color: #fff; opacity: 1; }
-  .tb-go { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
-  .tb-go button { padding: 2px 8px; font-size: 12px; }
-  #side > small { display: block; margin: 2px 0; }
+  /* panel de tiempo: fecha y hora como pastillas con mini-selector, franja del día con marcas y control de velocidad segmentado */
+  #bar { bottom: 14px; left: 50%; transform: translateX(-50%); width: min(600px, 96vw); box-sizing: border-box; padding: 9px 16px 12px; }
+  .chip { font-size: 10px; letter-spacing: .16em; padding: 0 10px; line-height: 20px; border-radius: 999px; border: 1px solid rgba(94, 223, 229, .4); color: var(--cian); background: rgba(94, 223, 229, .08); }
+  .tb-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .drums { display: flex; align-items: center; gap: 4px; font-family: var(--ui); font-size: 24px; font-weight: 300; color: #fff; font-variant-numeric: tabular-nums; line-height: 1; }
+  .drum { display: grid; grid-template-columns: auto 15px; grid-template-rows: 1fr 1fr; align-items: stretch; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.11); border-radius: 9px; overflow: hidden; }
+  .drum:focus-within, .drum:hover { border-color: rgba(220, 180, 80, .5); }
+  .drum .val { grid-column: 1; grid-row: 1 / 3; padding: 4px 6px 4px 8px; min-width: 1.15em; text-align: center; letter-spacing: .02em; } .drum .val.y { min-width: 2.35em; }
+  .drum button { grid-column: 2; border: 0; border-left: 1px solid rgba(255,255,255,.08); border-radius: 0; background: transparent; padding: 0; font-size: 8px; line-height: 1; color: var(--oro); opacity: .75; }
+  .drum button[data-d="1"] { grid-row: 1; border-bottom: 1px solid rgba(255,255,255,.08); } .drum button[data-d="-1"] { grid-row: 2; }
+  .drum button:hover { opacity: 1; background: rgba(220, 180, 80, .22); }
+  .drums .sep { opacity: .4; padding: 0; color: var(--oro); font-size: 18px; }
+  .daybar { margin: 10px 0 2px; }
+  #dayRange { -webkit-appearance: none; appearance: none; display: block; height: 12px; margin: 0; border: 1px solid rgba(255,255,255,.18); border-radius: 6px; background: #1d5f78; }
+  #dayRange::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 3px; transform: rotate(45deg); background: var(--oro); border: 2px solid #fff; cursor: pointer; box-shadow: 0 0 8px rgba(220, 180, 80, .8); }
+  #dayRange::-moz-range-thumb { width: 10px; height: 10px; border-radius: 3px; transform: rotate(45deg); background: var(--oro); border: 2px solid #fff; cursor: pointer; }
+  .ticks { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: .08em; color: var(--lila); opacity: .7; padding: 2px 1px 0; font-variant-numeric: tabular-nums; }
+  .tb-ctl { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
+  .tb-grp { display: flex; gap: 6px; }
+  button.round { width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
+  button.round svg { width: 16px; height: 16px; fill: currentColor; }
+  .speedrow { display: flex; flex: 1 1 280px; min-width: 0; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; overflow: hidden; }
+  .speedrow button { flex: 1 1 0; min-width: 0; padding: 4px 2px; font-size: 11px; letter-spacing: .02em; white-space: nowrap; border: 0; border-radius: 0; background: transparent; border-right: 1px solid rgba(255,255,255,.1); }
+  .speedrow button:last-child { border-right: 0; }
+  .speedrow button:hover { background: rgba(94, 223, 229, .16); }
+  .speedrow button.on { background: rgba(220, 180, 80, .3); color: #fff; box-shadow: inset 0 -2px 0 var(--oro); opacity: 1; }
+  .speedrow button.real { letter-spacing: .1em; text-transform: uppercase; font-size: 10px; }
+  #side small { display: block; margin: 2px 0; }
+  .sidebody { max-height: calc(100vh - 330px); min-height: 120px; overflow-y: auto; overflow-x: hidden; margin-right: -6px; padding-right: 6px; scrollbar-width: thin; scrollbar-color: rgba(220, 180, 80, .4) transparent; }
   #clock { white-space: nowrap; overflow: hidden; font-variant-numeric: tabular-nums; }
   .langsw { display: inline-flex; gap: 3px; margin-left: auto; letter-spacing: 0; text-transform: none; }
   .langsw button { padding: 0 7px; font-size: 11px; line-height: 20px; letter-spacing: .06em; }
@@ -179,6 +197,7 @@
 </div>
 <div id="side" class="hud skyhud" data-min="side">
   <div class="phdr"><span data-i18n="opt.title">Options</span><span class="langsw" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true" title="English">EN</button><button data-lang="es" aria-pressed="false" title="Español">ES</button></span><button class="minbtn" type="button">–</button></div>
+  <div class="sidebody">
   <input id="q" list="objs" data-i18n-ph="opt.search" data-i18n-aria="opt.searchAria" autocomplete="off">
   <datalist id="objs"></datalist>
   <div class="layers">
@@ -195,6 +214,7 @@
   <input id="mw" type="range" min="0" max="2.5" step="0.05" value="0.4">
   <small id="danjonLbl"></small>
   <input id="danjon" type="range" min="0" max="4" step="0.1" value="2">
+  </div>
   <hr>
   <small data-i18n="ev.title"></small>
   <div class="evmenu" id="evMenu">
@@ -203,6 +223,7 @@
   </div>
   <div class="layers"><button id="evPrev" data-i18n="ev.prev"></button><button id="evNext" data-i18n="ev.next"></button></div>
   <small data-i18n-html="opt.help"></small>
+  <small class="legal" data-i18n-html="opt.legal"></small>
 </div>
 <div id="trackChip" class="hud skyhud" hidden><span id="trackName"></span><button id="trackStop" data-i18n-aria="chip.stop">✕</button></div>
 <div id="pathChip" class="hud skyhud" hidden></div>
@@ -213,25 +234,27 @@
   <a id="cWiki" target="_blank" rel="noopener" hidden data-i18n="card.wiki"></a>
 </div>
 <div id="bar" class="hud skyhud" data-min="bar">
-  <div class="phdr"><span data-i18n="time.title"></span><button class="minbtn" type="button">–</button></div>
+  <div class="phdr"><span data-i18n="time.title"></span><span id="dayLabel" class="chip"></span><button class="minbtn" type="button">–</button></div>
   <div class="tb-top">
     <div class="drums" id="dDate"></div>
-    <div class="tb-mid">
-      <button id="now" data-i18n-title="time.now" data-i18n-aria="time.nowAria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3a9 9 0 1 0 8.5 12h-2.1A7 7 0 1 1 13 5a6.9 6.9 0 0 1 4.9 2L15 10h7V3l-2.6 2.6A9 9 0 0 0 13 3zm-1 5v5l4.2 2.5.8-1.3-3.5-2.1V8z"/></svg></button>
-      <button id="playPause" data-i18n-aria="time.pauseAria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
-    </div>
     <div class="drums" id="dTime"></div>
   </div>
-  <input id="dayRange" type="range" min="0" max="1439" step="1" value="0" data-i18n-aria="time.hourOfDay">
-  <small id="dayLabel"></small>
-  <div class="speedrow" id="speedRow">
-    <button data-sp="-600" data-i18n-title="time.back3">◀ ×3</button><button data-sp="-60" data-i18n-title="time.back2">◀ ×2</button><button data-sp="-30" data-i18n-title="time.back1">◀ ×1</button>
-    <button data-sp="1" data-i18n="time.real" data-i18n-title="time.realTitle"></button>
-    <button data-sp="30" data-i18n-title="time.fwd1">×1 ▶</button><button data-sp="60" data-i18n-title="time.fwd2">×2 ▶</button><button data-sp="600" data-i18n-title="time.fwd3">×3 ▶</button>
+  <div class="daybar">
+    <input id="dayRange" type="range" min="0" max="1439" step="1" value="0" data-i18n-aria="time.hourOfDay">
+    <div class="ticks" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
   </div>
-  <div class="tb-go">
-    <button id="calBtn" class="tb-cal" data-i18n-title="cal.title" data-i18n-aria="cal.aria" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zM5 9h14v11H5z"/></svg></button>
-    <button id="fsBtn" data-i18n-title="time.fs" data-i18n-aria="time.fsAria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z"/></svg></button>
+  <div class="tb-ctl">
+    <div class="tb-grp">
+      <button id="playPause" class="round" data-i18n-aria="time.pauseAria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
+      <button id="now" class="round" data-i18n-title="time.now" data-i18n-aria="time.nowAria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3a9 9 0 1 0 8.5 12h-2.1A7 7 0 1 1 13 5a6.9 6.9 0 0 1 4.9 2L15 10h7V3l-2.6 2.6A9 9 0 0 0 13 3zm-1 5v5l4.2 2.5.8-1.3-3.5-2.1V8z"/></svg></button>
+    </div>
+    <div class="speedrow" id="speedRow" role="group">
+      <button data-sp="-600" data-i18n-title="time.back3">◂ 10m</button><button data-sp="-60" data-i18n-title="time.back2">◂ 1m</button><button data-sp="-30" data-i18n-title="time.back1">◂ 30s</button><button data-sp="1" class="real" data-i18n="time.real" data-i18n-title="time.realTitle"></button><button data-sp="30" data-i18n-title="time.fwd1">30s ▸</button><button data-sp="60" data-i18n-title="time.fwd2">1m ▸</button><button data-sp="600" data-i18n-title="time.fwd3">10m ▸</button>
+    </div>
+    <div class="tb-grp">
+      <button id="calBtn" class="round tb-cal" data-i18n-title="cal.title" data-i18n-aria="cal.aria" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zM5 9h14v11H5z"/></svg></button>
+      <button id="fsBtn" class="round" data-i18n-title="time.fs" data-i18n-aria="time.fsAria"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z"/></svg></button>
+    </div>
   </div>
 </div>
 <div id="calPop" class="hud skyhud" role="dialog" data-i18n-aria="cal.title" hidden>

@@ -36,7 +36,7 @@ const unit3 = (a) => { const n = Math.hypot(...a) || 1; return a.map((v) => v / 
 const rotVec = (M, e) => [M[0] * e[0] + M[1] * e[1] + M[2] * e[2], M[3] * e[0] + M[4] * e[1] + M[5] * e[2], M[6] * e[0] + M[7] * e[1] + M[8] * e[2]];
 
 // ── Vista: el observador está en el centro de la esfera celeste y solo gira la mirada ──────────────
-// La proyección por defecto es estereográfica (conforme), como el modo normal de Stellarium: los discos y las estrellas
+// La proyección por defecto es estereográfica (conforme), la habitual en los planetarios: los discos y las estrellas
 // conservan su forma en toda la pantalla. La perspectiva de cámara (rectilínea) estira y ovala todo hacia los bordes.
 const view = { az: 0, alt: 20, fov: 100, mode: 0 };
 const projU = { uFwd: { value: new THREE.Vector3() }, uRight: { value: new THREE.Vector3() }, uUp: { value: new THREE.Vector3() },
@@ -268,7 +268,7 @@ function fitClock(key) {
 addEventListener('resize', () => { fitKey = ''; });
 let goal = null; // destino suave de la cámara
 
-// ── Seguimiento: la cámara acompaña a un cuerpo celeste (o estrella) mientras pasa el tiempo, como "Track object" de Stellarium ──
+// ── Seguimiento: la cámara acompaña a un cuerpo celeste (o estrella) mientras pasa el tiempo,  ──
 let track = null, trackLocked = false;              // { kind: 'body', key } | { kind: 'star', i }; locked = ya centrado: se pega al objeto sin retraso
 const sameObj = (a, b) => !!a && !!b && a.kind === b.kind && (a.kind === 'body' ? a.key === b.key : a.i === b.i);
 function trackTarget() {                            // posición actual (az, alt) del objeto seguido
@@ -958,6 +958,7 @@ const relabelDrums = () => document.querySelectorAll('.drum button').forEach((b)
 { // mantener pulsado repite el paso
   let t1 = 0, t2 = 0; const stop = () => { clearTimeout(t1); clearInterval(t2); };
   const step = (b) => { simMs = stepWall(simMs, b.dataset.u, +b.dataset.d, obsTz); dirty = true; };
+  document.querySelectorAll('.drum').forEach((d) => d.addEventListener('wheel', (e) => { e.preventDefault(); step(d.querySelector(`button[data-d="${e.deltaY < 0 ? 1 : -1}"]`)); }, { passive: false }));
   document.querySelectorAll('.drum button').forEach((b) => {
     b.addEventListener('pointerdown', (e) => { e.preventDefault(); step(b); stop(); t1 = setTimeout(() => { t2 = setInterval(() => step(b), 90); }, 420); });
     for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, stop);
