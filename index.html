@@ -161,6 +161,8 @@
   #fovBox.show { opacity: 1; }
   @media (max-width: 700px) { :root { --pw: calc(230px * var(--ts)); } #info { width: calc(200px * var(--ts)); font-size: calc(12px * var(--ts)); } #side { top: auto; bottom: calc(var(--barH, 150px) + 24px); width: calc(200px * var(--ts)); } .drums { font-size: calc(22px * var(--ts)); } }
   @media (max-width: 900px) { #card { bottom: calc(var(--barH, 150px) + 24px); } }
+  #nightFilter { position: fixed; inset: 0; z-index: 60; pointer-events: none; background: #ff1a0a; mix-blend-mode: multiply; display: none; }
+  body.night #nightFilter { display: block; }
   .txtsw { padding: 0 7px; line-height: calc(20px * var(--ts)); display: inline-flex; align-items: baseline; gap: 2px; letter-spacing: 0; text-transform: none; }
   .txtsw span { color: #eaf0fb; opacity: .4; line-height: 1; transition: opacity .15s, color .15s; }
   .txtsw .s0 { font-size: calc(10px * var(--ts)); } .txtsw .s1 { font-size: calc(13px * var(--ts)); } .txtsw .s2 { font-size: calc(17px * var(--ts)); }
@@ -181,6 +183,7 @@
   <div id="sSkip" data-i18n="splash.skip">Tap, drag or press a key to continue</div>
 </div>
 <div id="veil"></div>
+<div id="nightFilter" aria-hidden="true"></div>
 <div id="gpanel" class="hud">
   <div class="g-brand"><img src="/brand/caeliscope-icon.svg" alt="" class="g-icon"><img src="/brand/caeliscope-word.svg" alt="Caeliscope" class="g-word"><span class="hdrtools"><button class="txtsw" type="button" data-i18n-title="opt.textSize" data-i18n-aria="opt.textSize"><span class="s0 on">A</span><span class="s1">A</span><span class="s2">A</span></button><span class="langsw" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true">EN</button><button data-lang="es" aria-pressed="false">ES</button></span></span></div>
   <small data-i18n="globe.title">Observer location</small>
@@ -212,7 +215,7 @@
     <button id="tConst" aria-pressed="false" data-i18n="opt.const"></button><button id="tNames" aria-pressed="false" data-i18n="opt.names"></button>
     <button id="tMW" aria-pressed="true" data-i18n="opt.mw"></button><button id="tGround" aria-pressed="true" data-i18n="opt.ground"></button>
     <button id="tAz" aria-pressed="false" data-i18n="opt.az" data-i18n-title="opt.key.z"></button><button id="tEq" aria-pressed="false" data-i18n="opt.eq" data-i18n-title="opt.key.e"></button>
-    <button id="tEcl" aria-pressed="false" data-i18n="opt.ecl" data-i18n-title="opt.key.4"></button><button id="tMer" aria-pressed="false" data-i18n="opt.mer" data-i18n-title="opt.key.6"></button>
+    <button id="tEcl" aria-pressed="false" data-i18n="opt.ecl" data-i18n-title="opt.key.4"></button><button id="tMer" aria-pressed="false" data-i18n="opt.mer" data-i18n-title="opt.key.6"></button><button id="tNight" aria-pressed="false" data-i18n="opt.night" data-i18n-title="opt.nightTitle"></button>
   </div>
   <small data-i18n="opt.land"></small>
   <select id="land" data-i18n-aria="opt.landAria"><option value="1" selected data-i18n="opt.land.1"></option><option value="2" data-i18n="opt.land.2"></option><option value="3" data-i18n="opt.land.3"></option><option value="0" data-i18n="opt.land.0"></option></select>

@@ -1058,6 +1058,7 @@ addEventListener('keydown', (e) => {
   const gk = { z: 'tAz', e: 'tEq', 4: 'tEcl', 6: 'tMer' }[e.key.toLowerCase()]; if (gk) $(gk).click();
   if (e.key === 'Escape') $('cClose').click();
   if (e.key === 'f' || e.key === 'F') toggleFS();
+  if (e.key === 'n' || e.key === 'N') toggleNight();
   if (e.key === 't' || e.key === 'T') toggleTrack();
   if ((e.key === 'c' || e.key === 'C') && sel) { stopTrack(); const t = sel.kind === 'body' ? { az: last[sel.key].az_deg, alt: last[sel.key].alt_apparent_deg } : horizontalOf(rotM, starVec(sel.i)); goal = { az: t.az, alt: clamp(t.alt, -90, 90) }; }
   if (e.key === ' ') {
@@ -1078,9 +1079,12 @@ function applyUi() {
   r.setProperty('--ts', tsNow()); r.setProperty('--op', ui.op);
   for (const b of document.querySelectorAll('.txtsw')) b.querySelectorAll('span').forEach((sp, i) => sp.classList.toggle('on', i === ui.ts));
   $('panelOp').value = Math.round(ui.op * 100);
+  document.body.classList.toggle('night', ui.nm); $('tNight').setAttribute('aria-pressed', ui.nm);
   fitKey = ''; dirty = true;
 }
 for (const b of document.querySelectorAll('.txtsw')) b.onclick = () => { ui.ts = nextTextStep(ui.ts); saveUi(); applyUi(); };
+const toggleNight = () => { ui.nm = !ui.nm; saveUi(); applyUi(); };
+$('tNight').onclick = toggleNight;
 $('panelOp').oninput = (e) => { ui.op = clampOpacity(+e.target.value / 100); saveUi(); applyUi(); };
 function applyLang() {
   applyStatic(); rebuildObjList(); buildEvMenu(); relabelDrums(); setSpeed(speed); setDanjonLbl(); renderGDetail();
