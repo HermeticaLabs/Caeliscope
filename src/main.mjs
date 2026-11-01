@@ -6,6 +6,7 @@ import { dirFromAltAz, skyPalette, extinction, moonOrientation, eclipseAlt } fro
 import { skyRotation, magLimit, buildStarArrays, buildSegmentPositions, lineAlpha, labelMagLimit, equatorialVector, horizontalOf, normName, precessionMatrix } from './stars.mjs';
 import { fmtHMS, fmtDMS, planetPhase, elongationDeg, riseSetFromSamples, refractionDeg } from './astro-fmt.mjs';
 import { findPhase, findSunLongitude, findEclipseWhere, localSolarInfo, localSolarKind, lunarEclipseInfo } from './events.mjs';
+import { buildExport, toText, fileName } from './snapshot-json.mjs';
 import { TEXT_STEPS, nextTextStep, clampOpacity, parsePrefs } from './ui-prefs.mjs';
 import { t as T, getLang, setLang, onLang, initLang, applyStatic, locale, bodyName, conName, starName } from './i18n.mjs';
 import { azimuthalGrid, equatorialGrid, eclipticLine, meridianLine } from './grids.mjs';
@@ -495,6 +496,41 @@ function describe() {
   } else rows.push([T('row.rise'), '…'], [T('row.set'), '…']);   // mismo alto que el resultado, para que la ficha no se desplace al llegar el cálculo
   return { title, sub, rows, wiki };
 }
+// ── Vista para desarrolladores: la ficha se da vuelta y muestra el JSON en vivo de Caelis Engine ──
+let jsonOpen = false, jsonText = '', jsonObj = null;
+function currentExport() {
+  if (!sel || !lastSnap || !rotM) return null;
+  const observer = { lat: obs.lat, lon: obs.lon };
+  if (sel.kind === 'body') return buildExport({ kind: 'body', key: sel.key, name: bodyName(sel.key, 'en'), data: lastSnap.bodies[sel.key], snap: lastSnap, observer, extra: sel.key === 'Luna' ? lastSnap.luna : undefined });
+  const s = starCat[sel.i], info = starInfo && starInfo[sel.i], h = horizontalOf(rotM, starVec(sel.i));
+  return buildExport({ kind: 'star', key: 'star:' + sel.i, name: starName(starNameOf(sel.i), 'en') || (info && info[1] ? `HIP ${info[1]}` : `star ${sel.i}`), snap: lastSnap, observer,
+    data: { ra_j2000_deg: s[0], dec_j2000_deg: s[1], magnitude: s[2], bv_index: s[3], hip: info ? info[1] : null, az_deg: h.az, alt_geometric_deg: h.alt, lst_deg: lastSnap.meta.sidereal.lst_deg } });
+}
+function showFace() {
+  const on = jsonOpen && ui.js;
+  $('cRows').hidden = on; $('cJsonView').hidden = !on;
+  if (!on) return;
+  $('cWiki').hidden = true;
+  jsonObj = currentExport(); const txt = jsonObj ? toText(jsonObj) : '';
+  if (txt !== jsonText && !(document.activeElement === $('jPre') && getSelection().toString())) { jsonText = txt; $('jPre').textContent = txt; }   // no pisa un texto que se está seleccionando
+}
+function flipCard(next) {                      // media vuelta: la ficha se pone de canto, cambia la cara y se abre de nuevo
+  const f = $('cFace'); if (!f.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) { jsonOpen = next; refreshCard(); return; }
+  f.animate([{ transform: 'perspective(700px) rotateX(0)' }, { transform: 'perspective(700px) rotateX(90deg)' }], { duration: 170, easing: 'ease-in' }).onfinish = () => {
+    jsonOpen = next; refreshCard();
+    f.animate([{ transform: 'perspective(700px) rotateX(-90deg)' }, { transform: 'perspective(700px) rotateX(0)' }], { duration: 190, easing: 'ease-out' });
+  };
+}
+$('cJson').onclick = () => flipCard(!jsonOpen);
+$('jCopy').onclick = async () => {
+  const b = $('jCopy');
+  try { await navigator.clipboard.writeText(jsonText); } catch { const r = document.createRange(); r.selectNodeContents($('jPre')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand?.('copy'); s.removeAllRanges(); }
+  b.textContent = T('json.copied'); setTimeout(() => { b.textContent = T('json.copy'); }, 1200);
+};
+$('jDown').onclick = () => {
+  if (!jsonObj) return; const url = URL.createObjectURL(new Blob([jsonText], { type: 'application/json' })), a = document.createElement('a');
+  a.href = url; a.download = fileName(jsonObj); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+};
 function refreshCard() {
   const card = $('card');
   updatePaths();
@@ -510,7 +546,8 @@ function refreshCard() {
   cp.style.setProperty('--pc', pc); cp.setAttribute('aria-pressed', paths.has(pathId(sel)));
   $('cZoom').hidden = sel.kind !== 'body';
   const ca = $('cAll'); ca.hidden = sel.kind !== 'star'; ca.style.setProperty('--pc', rgbCss(STAR_PATH)); ca.setAttribute('aria-pressed', trails.on); ca.lastChild.textContent = trailLabel();
-  card.hidden = false; updateTrackUI();
+  $('cJson').hidden = !ui.js; if (!ui.js) jsonOpen = false;
+  $('cJson').setAttribute('aria-pressed', jsonOpen); showFace(); card.hidden = false; updateTrackUI();
 }
 $('cClose').onclick = () => { sel = null; rsKey = ''; rs = null; refreshCard(); updateTrackUI(); };
 const toggleTrack = () => { if (!sel) return; if (sameObj(track, sel)) stopTrack(); else startTrack(sel); };
@@ -649,6 +686,7 @@ function selectionForName(value) {            // lo que se busca por nombre tamb
 }
 
 // ── Tiempo y motor ─────────────────────────────────────────────────────────────
+let lastSnap = null;
 let simMs = Date.now(), speed = 1, dirty = true, lastUpdate = 0, last = null, engineUs = 0;
 setLandscape(1);
 const fmtMag = (m) => (Number.isFinite(m) ? m.toFixed(2).replace('-', '−') : '—');
@@ -680,7 +718,7 @@ function update() {
   const t0 = performance.now();
   const snap = snapAt(simMs);
   engineUs = (performance.now() - t0) * 1000;
-  last = snap.bodies;
+  last = snap.bodies; lastSnap = snap;
   const { Sol, Luna } = last;
   lstNow = snap.meta.sidereal.lst_deg; tNow = (snap.meta.jd_tt - 2451545) / 36525; lunaNow = snap.luna;
   rotM = skyRotation(lstNow, obs.lat, tNow); starU.uRot.value.set(...rotM);
@@ -1079,12 +1117,14 @@ function applyUi() {
   r.setProperty('--ts', tsNow()); r.setProperty('--op', ui.op);
   for (const b of document.querySelectorAll('.txtsw')) b.querySelectorAll('span').forEach((sp, i) => sp.classList.toggle('on', i === ui.ts));
   $('panelOp').value = Math.round(ui.op * 100);
+  $('tJson').setAttribute('aria-pressed', ui.js); if (!ui.js) jsonOpen = false;
   document.body.classList.toggle('night', ui.nm); $('tNight').setAttribute('aria-pressed', ui.nm);
   fitKey = ''; dirty = true;
 }
 for (const b of document.querySelectorAll('.txtsw')) b.onclick = () => { ui.ts = nextTextStep(ui.ts); saveUi(); applyUi(); };
 const toggleNight = () => { ui.nm = !ui.nm; saveUi(); applyUi(); };
 $('tNight').onclick = toggleNight;
+$('tJson').onclick = () => { ui.js = !ui.js; saveUi(); applyUi(); refreshCard(); };
 $('panelOp').oninput = (e) => { ui.op = clampOpacity(+e.target.value / 100); saveUi(); applyUi(); };
 function applyLang() {
   applyStatic(); rebuildObjList(); buildEvMenu(); relabelDrums(); setSpeed(speed); setDanjonLbl(); renderGDetail();

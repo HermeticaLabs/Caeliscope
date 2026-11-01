@@ -53,6 +53,15 @@
   #cTrack[aria-pressed="false"], #cPath[aria-pressed="false"] { opacity: 1; }
   #trackChip { top: 14px; left: 50%; transform: translateX(-50%); padding: 3px 6px 3px 14px; display: flex; align-items: center; gap: 8px; color: var(--oro); }
   #trackChip button { padding: 0 8px; }
+  #cFace { transform-origin: 50% 0; backface-visibility: hidden; }
+  #card button.mono { font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace; font-size: calc(11px * var(--ts)); padding: 0 8px; letter-spacing: -.02em; }
+  #card button.mono[aria-pressed="true"] { background: rgba(94, 223, 229, .2); border-color: var(--cian); color: var(--cian); opacity: 1; }
+  .jbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 8px 0 6px; }
+  .jbtns { display: flex; gap: 6px; } .jbtns button { padding: 0 10px; font-size: calc(11px * var(--ts)); white-space: nowrap; }
+  .jlive { display: inline-flex; align-items: center; gap: 6px; font-size: calc(10px * var(--ts)); letter-spacing: .16em; text-transform: uppercase; color: var(--cian); }
+  .jlive i { width: 6px; height: 6px; border-radius: 50%; background: var(--cian); box-shadow: 0 0 6px var(--cian); animation: jpulse 1.6s ease-in-out infinite; }
+  @keyframes jpulse { 50% { opacity: .25; } }
+  #jPre { margin: 0; max-height: calc(46vh - 120px * var(--ts)); overflow: auto; white-space: pre; font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace; line-height: 1.45; font-size: calc(11px * var(--ts)); color: #cfe9ee; background: rgba(0, 0, 0, .28); border: 1px solid rgba(94, 223, 229, .18); border-radius: 8px; padding: 8px 10px; user-select: text; scrollbar-width: thin; }
   #card a { color: #6fd0d8; font-size: calc(12px * var(--ts)); }
   :root { --pw: calc(280px * var(--ts)); }   /* ancho exterior del panel izquierdo del cielo (250 + relleno + borde) */
   #skyLogo { position: fixed; top: 12px; left: 14px; width: var(--pw); display: flex; align-items: center; justify-content: space-between; pointer-events: none; z-index: 6; filter: drop-shadow(0 1px 6px rgba(0,0,0,.6)); }
@@ -90,7 +99,7 @@
   .hud.mini { width: auto !important; min-width: 0; max-height: none !important; overflow: hidden; }
   .hud.mini > :not(.phdr):not(.card-head) { display: none !important; }
   .hud.mini .phdr { margin: 0; }
-  #card.mini .card-head ~ *, #card.mini #cSub, #card.mini #cTrack, #card.mini #cZoom, #card.mini #cPath, #card.mini #cAll { display: none !important; }
+  #card.mini #cJson, #card.mini .card-head ~ *, #card.mini #cSub, #card.mini #cTrack, #card.mini #cZoom, #card.mini #cPath, #card.mini #cAll { display: none !important; }
   #card.mini .card-head { align-items: center; }
   #card.mini #cTitle { font-size: calc(15px * var(--ts)); }
   /* trayectorias */
@@ -215,7 +224,7 @@
     <button id="tConst" aria-pressed="false" data-i18n="opt.const"></button><button id="tNames" aria-pressed="false" data-i18n="opt.names"></button>
     <button id="tMW" aria-pressed="true" data-i18n="opt.mw"></button><button id="tGround" aria-pressed="true" data-i18n="opt.ground"></button>
     <button id="tAz" aria-pressed="false" data-i18n="opt.az" data-i18n-title="opt.key.z"></button><button id="tEq" aria-pressed="false" data-i18n="opt.eq" data-i18n-title="opt.key.e"></button>
-    <button id="tEcl" aria-pressed="false" data-i18n="opt.ecl" data-i18n-title="opt.key.4"></button><button id="tMer" aria-pressed="false" data-i18n="opt.mer" data-i18n-title="opt.key.6"></button><button id="tNight" aria-pressed="false" data-i18n="opt.night" data-i18n-title="opt.nightTitle"></button>
+    <button id="tEcl" aria-pressed="false" data-i18n="opt.ecl" data-i18n-title="opt.key.4"></button><button id="tMer" aria-pressed="false" data-i18n="opt.mer" data-i18n-title="opt.key.6"></button><button id="tNight" aria-pressed="false" data-i18n="opt.night" data-i18n-title="opt.nightTitle"></button><button id="tJson" aria-pressed="false" data-i18n="opt.jsonBtn" data-i18n-title="opt.jsonTitle"></button>
   </div>
   <small data-i18n="opt.land"></small>
   <select id="land" data-i18n-aria="opt.landAria"><option value="1" selected data-i18n="opt.land.1"></option><option value="2" data-i18n="opt.land.2"></option><option value="3" data-i18n="opt.land.3"></option><option value="0" data-i18n="opt.land.0"></option></select>
@@ -242,9 +251,15 @@
 <div id="pathChip" class="hud skyhud" hidden></div>
 <div id="fovBox" class="hud skyhud" aria-live="polite"></div>
 <div id="card" class="hud skyhud" data-min="card" hidden>
-  <div class="card-head"><div><div id="cTitle"></div><small id="cSub"></small></div><div class="card-btns"><button id="cTrack" aria-pressed="false" data-i18n="card.follow" data-i18n-title="card.followTitle"></button><button id="cZoom" hidden data-i18n="card.zoom" data-i18n-title="card.zoomTitle"></button><button id="cPath" aria-pressed="false" data-i18n-title="card.pathTitle"><span class="pdot"></span><span data-i18n="card.path"></span></button><button id="cAll" aria-pressed="false" hidden data-i18n-title="card.allTitle"><span class="pdot"></span><span id="cAllT"></span></button><button class="minbtn" id="cMin" type="button">–</button><button id="cClose" data-i18n-aria="card.close">✕</button></div></div>
-  <table id="cRows"></table>
-  <a id="cWiki" target="_blank" rel="noopener" hidden data-i18n="card.wiki"></a>
+  <div class="card-head"><div><div id="cTitle"></div><small id="cSub"></small></div><div class="card-btns"><button id="cTrack" aria-pressed="false" data-i18n="card.follow" data-i18n-title="card.followTitle"></button><button id="cZoom" hidden data-i18n="card.zoom" data-i18n-title="card.zoomTitle"></button><button id="cPath" aria-pressed="false" data-i18n-title="card.pathTitle"><span class="pdot"></span><span data-i18n="card.path"></span></button><button id="cAll" aria-pressed="false" hidden data-i18n-title="card.allTitle"><span class="pdot"></span><span id="cAllT"></span></button><button id="cJson" class="mono" hidden aria-pressed="false" data-i18n-title="card.json">&lt;/&gt;</button><button class="minbtn" id="cMin" type="button">–</button><button id="cClose" data-i18n-aria="card.close">✕</button></div></div>
+  <div id="cFace">
+    <table id="cRows"></table>
+    <a id="cWiki" target="_blank" rel="noopener" hidden data-i18n="card.wiki"></a>
+    <div id="cJsonView" hidden>
+      <div class="jbar"><span class="jlive"><i></i><span data-i18n="json.live"></span></span><span class="jbtns"><button id="jCopy" data-i18n="json.copy"></button><button id="jDown" data-i18n="json.download"></button></span></div>
+      <pre id="jPre" tabindex="0"></pre>
+    </div>
+  </div>
 </div>
 <div id="bar" class="hud skyhud" data-min="bar">
   <div class="phdr"><span data-i18n="time.title"></span><span id="dayLabel" class="chip"></span><button class="minbtn" type="button">–</button></div>

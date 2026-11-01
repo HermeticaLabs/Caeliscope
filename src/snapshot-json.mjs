@@ -1,0 +1,32 @@
+// Exportación en JSON de lo que Caelis Engine devuelve para un objeto en un instante, con los metadatos de procedencia al principio.
+// Funciones puras (sin DOM), con prueba.
+export const APP = { name: 'Caeliscope', url: 'https://github.com/HermeticaLabs/Caeliscope' };
+export const ENGINE = { name: 'Caelis Engine', version: '4.0.13', url: 'https://github.com/hermeticalabs/caelis-engine' };   // actualizar al sincronizar el motor
+export const PUBLISHER = 'Hermetica Labs';
+export const ORIGIN = { star: 'Hipparcos catalogue (via d3-celestial); horizontal coordinates computed by Caeliscope from the engine sidereal time', body: 'Caelis Engine getSnapshotAt()' };
+
+// kind: 'body' | 'star'. snap = lo que devolvió getSnapshotAt. data = objeto del cuerpo (o de la estrella).
+export function buildExport({ kind, key, name, data, snap, observer, extra }) {
+  const meta = snap?.meta ?? {};
+  const out = {
+    _meta: {
+      generated_by: APP.name, app_url: APP.url,
+      engine: ENGINE.name, engine_version: ENGINE.version, engine_url: ENGINE.url,
+      schema_version: snap?.schema_version ?? null,
+      publisher: PUBLISHER,
+      data_origin: ORIGIN[kind] ?? ORIGIN.body,
+      instant_utc: meta.utc ?? null, jd_tt: meta.jd_tt ?? null, delta_t_sec: meta.delta_t_sec ?? null,
+      observer: { lat_deg: observer.lat, lon_deg: observer.lon },
+    },
+    object: { kind, id: key, name },
+    data,
+  };
+  if (extra) out.extra = extra;
+  return out;
+}
+export const toText = (o) => JSON.stringify(o, null, 2);
+export const fileName = (o) => {
+  const slug = String(o.object.name || o.object.id).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'object';
+  const t = (o._meta.instant_utc || '').replace(/[-:]/g, '').replace(/\.\d+Z?$/, '').replace('T', '-').replace(/Z$/, '');
+  return `caeliscope-${slug}${t ? '-' + t : ''}.json`;
+};
