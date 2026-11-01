@@ -12,9 +12,10 @@ test('la opacidad se limita entre 20% y 100%', () => {
 });
 test('modo nocturno: solo se activa con true', () => { assert.equal(parsePrefs('{"nm":true}').nm, true); assert.equal(parsePrefs('{"nm":1}').nm, false); });
 test('preferencias guardadas: valores válidos se respetan y lo corrupto vuelve al valor por defecto', () => {
-  assert.deepEqual(parsePrefs('{"ts":2,"op":0.4}'), { js: false, nm: false, ts: 2, op: 0.4 });
-  assert.deepEqual(parsePrefs(null), { js: false, nm: false, ts: 0, op: 1 });
-  assert.deepEqual(parsePrefs('no es json'), { js: false, nm: false, ts: 0, op: 1 });
-  assert.deepEqual(parsePrefs('{"ts":9,"op":-3}'), { js: false, nm: false, ts: 0, op: 0.2 });
+  assert.deepEqual(parsePrefs('{"ts":2,"op":0.4}'), { sp: 0, js: false, nm: false, ts: 2, op: 0.4 });
+  assert.deepEqual(parsePrefs(null), { sp: 0, js: false, nm: false, ts: 0, op: 1 });
+  assert.deepEqual(parsePrefs('no es json'), { sp: 0, js: false, nm: false, ts: 0, op: 1 });
+  assert.deepEqual(parsePrefs('{"ts":9,"op":-3}'), { sp: 0, js: false, nm: false, ts: 0, op: 0.2 });
 });
 test('vista JSON: solo se activa con true', () => { assert.equal(parsePrefs('{"js":true}').js, true); assert.equal(parsePrefs('{"js":"si"}').js, false); });
+test('alcance de trayectorias: 0, 1 o 2; lo demás vuelve a 0', () => { assert.equal(parsePrefs('{"sp":2}').sp, 2); assert.equal(parsePrefs('{"sp":7}').sp, 0); });

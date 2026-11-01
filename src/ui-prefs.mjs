@@ -6,6 +6,6 @@ export const clampOpacity = (v) => { const x = Number(v); return Number.isFinite
 export function parsePrefs(raw) {
   try {
     const o = JSON.parse(raw || 'null') || {};
-    return { js: o.js === true, nm: o.nm === true, ts: Number.isInteger(o.ts) && o.ts >= 0 && o.ts < TEXT_STEPS.length ? o.ts : 0, op: o.op === undefined ? OPACITY_MAX : clampOpacity(o.op) };
-  } catch { return { js: false, nm: false, ts: 0, op: OPACITY_MAX }; }
+    return { sp: o.sp === 1 || o.sp === 2 ? o.sp : 0, js: o.js === true, nm: o.nm === true, ts: Number.isInteger(o.ts) && o.ts >= 0 && o.ts < TEXT_STEPS.length ? o.ts : 0, op: o.op === undefined ? OPACITY_MAX : clampOpacity(o.op) };
+  } catch { return { sp: 0, js: false, nm: false, ts: 0, op: OPACITY_MAX }; }
 }

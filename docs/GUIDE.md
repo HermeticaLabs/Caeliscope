@@ -64,6 +64,35 @@ Every body becomes a unit vector with this one function. Angles between two bodi
 
 Most "it looks mirrored" bugs come from mixing two conventions. Decide early, write it in a comment at the top of the file, and test it with the Sun at local noon (it should be high and in the South in the northern hemisphere).
 
+### From the engine's angles to a Three.js `Vector3`
+
+This is the step that usually costs people an afternoon, so here it is in full. The engine gives you angles; Three.js wants a vector. There are two kinds of angles and each has its own one-line conversion into the **same** scene axes (`+x` East, `+y` up, `−z` North):
+
+```js
+import * as THREE from 'three';
+const D2R = Math.PI / 180;
+
+// 1) Horizontal coordinates (already for this observer): alt_apparent_deg, az_deg
+const fromAltAz = (alt, az) => new THREE.Vector3(
+  Math.cos(alt * D2R) * Math.sin(az * D2R),     // x: East
+  Math.sin(alt * D2R),                          // y: up
+ -Math.cos(alt * D2R) * Math.cos(az * D2R));    // z: North is -z
+
+// 2) Equatorial coordinates (fixed to the stars): ra_deg, dec_deg
+const equatorial = (ra, dec) => new THREE.Vector3(
+  Math.cos(dec * D2R) * Math.cos(ra * D2R),
+  Math.cos(dec * D2R) * Math.sin(ra * D2R),
+  Math.sin(dec * D2R));
+```
+
+Use (1) for anything that should appear where it is *right now* in the observer's sky (the Sun, the Moon, a planet today). Use (2) for anything that must stay glued to the stars (star catalogues, constellation lines, the ecliptic, a planet's path over weeks). A vector from (2) is turned into scene axes by one rotation matrix that depends on the local sidereal time (`snap.meta.sidereal.lst_deg`) and the latitude: see `skyRotation()` in `src/stars.mjs`. Upload that matrix as a single uniform and the GPU rotates the whole sky each frame; your data never has to be recomputed.
+
+Three things to remember:
+
+- **A unit vector is enough.** The sky is at infinity, so place the camera at the origin, never translate it, and only rotate the view.
+- **Do not mix the two families.** Plotting a planet's path over months with (1) smears it, because the sky turns about 361° per day. Plot it with (2) and it stays fixed against the stars, and retrograde loops appear on their own (Caeliscope's "±3 months / ±6 months" trajectory range does exactly this: one engine query per day, `equatorial(ra_deg, dec_deg)` for each).
+- **Check the handedness once.** Put the Sun at local noon in the northern hemisphere: it must be high and to the South (`−z` flipped, so towards `+z`). If it is mirrored, your `z` sign is wrong, not the engine.
+
 ## 3. Place the Sun, Moon and planets
 
 For the Sun, Moon and planets the engine already gives altitude and azimuth. Convert with `dirFromAltAz` and draw. Two details make them look right:

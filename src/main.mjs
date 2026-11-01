@@ -559,6 +559,10 @@ $('trackStop').onclick = stopTrack;
 // ── Trayectorias: cada objeto activado conserva la suya, con su color (±12 h alrededor del instante actual, un punto cada 10 min) ──
 // Lo ya recorrido se dibuja tenue y lo que viene, más claro. Los cuerpos se consultan a Caelis en tandas; las estrellas se calculan directo.
 const PATH_STEP = 600000, PATH_HALF = 72, PATH_BUCKET = 6 * 3600000;
+// Alcance de la trayectoria de los cuerpos (en Opciones): ±12 h en el cielo del observador, o ±3 / ±6 meses contra las estrellas (se ven los bucles de retrogradación).
+// En los alcances largos se dibuja en coordenadas ecuatoriales de la fecha (fijas respecto de las estrellas), con un punto por día; si no, el giro diario del cielo taparía el bucle.
+const DAY_MS = 86400000, SPANS = [{ long: false }, { long: true, half: 90 }, { long: true, half: 180 }];
+const cfgOf = (p) => (p.long ? { step: DAY_MS, half: SPANS[ui.sp].half, bucket: DAY_MS } : { step: PATH_STEP, half: PATH_HALF, bucket: PATH_BUCKET });
 const PATH_COLORS = { Sol: [1, 0.82, 0.24], Luna: [0.86, 0.9, 1], Mercurio: [0.78, 0.72, 0.62], Venus: [1, 0.6, 0.8], Marte: [1, 0.33, 0.25], Jupiter: [1, 0.66, 0.3], Saturno: [0.9, 0.76, 0.36], Urano: [0.43, 0.89, 0.93], Neptuno: [0.38, 0.5, 1] };
 const STAR_PATH = [0.72, 0.82, 1];
 const rgbCss = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
@@ -585,7 +589,8 @@ function renderPathChip() {
 function addPath(o) {
   const id = pathId(o); if (paths.has(id)) return;
   const col = colorOf(o);
-  paths.set(id, { obj: { kind: o.kind, key: o.key, i: o.i }, col, past: makeLines(new Float32Array(6), col, idU, 0.35, 4), fut: makeLines(new Float32Array(6), col, idU, 0.95, 4), key: '', pts: [], splitAt: 0 });
+  const long = o.kind === 'body' && SPANS[ui.sp].long, rot = long ? dateU : idU;
+  paths.set(id, { obj: { kind: o.kind, key: o.key, i: o.i }, col, long, past: makeLines(new Float32Array(6), col, rot, 0.35, 4), fut: makeLines(new Float32Array(6), col, rot, 0.95, 4), key: '', pts: [], splitAt: 0 });
   for (const m of [paths.get(id).past, paths.get(id).fut]) m.visible = false;
   renderPathChip();
 }
@@ -600,17 +605,17 @@ function splitPath(p) {
   setSegments(p.past, past); setSegments(p.fut, fut); p.splitAt = simMs;
 }
 function computePath(id, p, key, bucket) {
-  const o = p.obj, tc = (bucket + 0.5) * PATH_BUCKET, pts = [];
+  const o = p.obj, cf = cfgOf(p), tc = (bucket + 0.5) * cf.bucket, pts = [];
   if (o.kind === 'star') {
     const e = starVec(o.i);
-    for (let k = -PATH_HALF; k <= PATH_HALF; k++) { const t = tc + k * PATH_STEP; pts.push({ t, v: rotVec(skyRotation(lstNow + (360.98564736629 * (t - simMs)) / 86400000, obs.lat, tNow), e) }); }
+    for (let k = -cf.half; k <= cf.half; k++) { const t = tc + k * cf.step; pts.push({ t, v: rotVec(skyRotation(lstNow + (360.98564736629 * (t - simMs)) / 86400000, obs.lat, tNow), e) }); }
     p.pts = pts; return splitPath(p);
   }
-  let k = -PATH_HALF;
+  let k = -cf.half;
   (function chunk() {
     if (p.key !== key || !paths.has(id)) return;
-    for (let c = 0; c < 12 && k <= PATH_HALF; c++, k++) { const t = tc + k * PATH_STEP, b = snapAt(t).bodies[o.key]; pts.push({ t, v: dirFromAltAz(b.alt_apparent_deg, b.az_deg) }); }
-    if (k <= PATH_HALF) setTimeout(chunk, 0); else { p.pts = pts; splitPath(p); }
+    for (let c = 0; c < 12 && k <= cf.half; c++, k++) { const t = tc + k * cf.step, b = snapAt(t).bodies[o.key]; pts.push({ t, v: p.long ? equatorialVector(b.ra_deg, b.dec_deg) : dirFromAltAz(b.alt_apparent_deg, b.az_deg) }); }
+    if (k <= cf.half) setTimeout(chunk, 0); else { p.pts = pts; splitPath(p); }
   })();
 }
 const TRAIL_MAG = 5.0, TRAIL_N = 36, TRAIL_STEP = 1200000;   // estrellas hasta magnitud 5; ±12 h cada 20 min
@@ -633,12 +638,12 @@ function updateTrails(bucket) {
 }
 function updatePaths() {
   if (!last || !rotM) return;
-  const bucket = Math.floor(simMs / PATH_BUCKET), key = `${bucket}|${obs.lat}|${obs.lon}`;
   for (const [id, p] of paths) {
+    const cf = cfgOf(p), bucket = Math.floor(simMs / cf.bucket), key = `${bucket}|${obs.lat}|${obs.lon}|${p.long}`;
     if (p.key !== key) { p.key = key; computePath(id, p, key, bucket); }
-    else if (Math.abs(simMs - p.splitAt) > PATH_STEP && p.pts.length) splitPath(p);
+    else if (Math.abs(simMs - p.splitAt) > cf.step && p.pts.length) splitPath(p);
   }
-  updateTrails(bucket);
+  updateTrails(Math.floor(simMs / PATH_BUCKET));
 }
 // Estelas en vivo: se precalculan ±24 h alrededor del instante en que se activan y solo se muestra lo recorrido entre ese instante y el actual (crecen al correr el tiempo, hacia delante o hacia atrás)
 const LIVE_N = 72, LIVE_STEP = 1200000;
@@ -1117,13 +1122,18 @@ function applyUi() {
   r.setProperty('--ts', tsNow()); r.setProperty('--op', ui.op);
   for (const b of document.querySelectorAll('.txtsw')) b.querySelectorAll('span').forEach((sp, i) => sp.classList.toggle('on', i === ui.ts));
   $('panelOp').value = Math.round(ui.op * 100);
-  $('tJson').setAttribute('aria-pressed', ui.js); if (!ui.js) jsonOpen = false;
+  $('pathSpan').value = ui.sp; $('tJson').setAttribute('aria-pressed', ui.js); if (!ui.js) jsonOpen = false;
   document.body.classList.toggle('night', ui.nm); $('tNight').setAttribute('aria-pressed', ui.nm);
   fitKey = ''; dirty = true;
 }
 for (const b of document.querySelectorAll('.txtsw')) b.onclick = () => { ui.ts = nextTextStep(ui.ts); saveUi(); applyUi(); };
 const toggleNight = () => { ui.nm = !ui.nm; saveUi(); applyUi(); };
 $('tNight').onclick = toggleNight;
+$('pathSpan').onchange = (e) => {
+  ui.sp = +e.target.value; saveUi();
+  const objs = [...paths.values()].map((p) => p.obj); for (const id of [...paths.keys()]) removePath(id);
+  for (const o of objs) addPath(o); refreshCard(); dirty = true;
+};
 $('tJson').onclick = () => { ui.js = !ui.js; saveUi(); applyUi(); refreshCard(); };
 $('panelOp').oninput = (e) => { ui.op = clampOpacity(+e.target.value / 100); saveUi(); applyUi(); };
 function applyLang() {
