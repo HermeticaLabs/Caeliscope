@@ -15,6 +15,7 @@ import { followStep } from './tracking.mjs';
 import { buildLandscape, skylineAt, LAND_W } from './landscape.mjs';
 import { tzAt, toInputValue, fromInputValue, dayIndex, fmtOffset, zoneName, fmtClock, fmtHM, fmtDateTime, partsAt, wallToMs, stepWall } from './timezone.mjs';
 import { Globe } from './globe.mjs';
+import { solarShadow, lunarShadow, shadowMode } from './shadow.mjs';
 import { BODY_ORDER, rangesFor, rangeConfig, cycleDays, usesModal, retroFlags, stations, retroColor, tickPlan, tickTimes, rosettePoint, fitPoints } from './trajectory.mjs';
 import { fadeColor, wrap180 } from './globe-math.mjs';
 import { splashState, veilAlpha, IN_MS, OUT_MS, SKY_VEIL_MS, LEAVE_VEIL_MS } from './timeline.mjs';
@@ -936,7 +937,7 @@ async function searchEvent(dir) {
       const r = await findEclipseWhere(snapAt, from, kind, dir, accept, yrs, (y) => say(T('ev.searchingN', { n: y })));
       const what = T('ev.what.' + (sub ? evSel.replace(':', '.') : kind));
       if (!r) return say(T(dir > 0 ? 'ev.none' : 'ev.noneBack', { what, years: yrs }));
-      look = kind === 'solar' ? 'Sol' : 'Luna';
+      look = kind === 'solar' ? 'Sol' : 'Luna'; setShadow(true);
       if (kind === 'solar') {
         ms = info.l.ms; fov = 14;
         const g = eclipseGeometry(snapAt(ms).bodies), shown = T('ev.what.solar.' + ({ anular: 'annular', parcial: 'partial' }[info.k] || info.k));
@@ -1259,6 +1260,55 @@ function drawGeo() {
   $('gwStat').textContent = done ? T('geo.done', { span }) : T('geo.drawing', { n: Math.min(99, Math.floor((100 * n) / total)) });
 }
 
+// ── Guía de sombra: conos de umbra y penumbra del eclipse (solar: sombra de la Luna; lunar: sombra de la Tierra) en el instante actual ──
+const ecl = { open: false, stamp: '' };
+function setShadow(on) {
+  ecl.open = on; $('eclWin').hidden = !on; $('tShadow').setAttribute('aria-pressed', on); ecl.stamp = ''; dirty = true;
+}
+$('tShadow').onclick = () => setShadow(!ecl.open);
+$('ewClose').onclick = () => setShadow(false);
+function drawShadow() {
+  if (!ecl.open || !last || $('eclWin').classList.contains('mini')) return;
+  const stamp = [Math.round(simMs / 30000), tsNow(), getLang(), $('eclWin').clientWidth].join('|');
+  if (stamp === ecl.stamp) return; ecl.stamp = stamp;
+  const cv = $('ewCanvas'), W = cv.clientWidth || 280, dpr = Math.min(2, devicePixelRatio || 1), k = tsNow();
+  if (cv.width !== Math.round(W * dpr)) cv.width = cv.height = Math.round(W * dpr); cv.style.height = W + 'px';
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, W); g.textBaseline = 'middle'; g.font = `${10 * k}px Georgia`;
+  const moon = last.Luna, sun = last.Sol, mode = shadowMode(moon, sun), f2 = (x, n = 2) => x.toFixed(n);
+  $('ewTitle').textContent = T(mode === 'solar' ? 'sh.solar' : 'sh.lunar');
+  const disc = (x, y, r, fill, stroke, dash) => { g.beginPath(); g.arc(x, y, Math.max(r, 0.5), 0, 6.2832); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.setLineDash(dash || []); g.strokeStyle = stroke; g.stroke(); g.setLineDash([]); } };
+  if (mode === 'solar') {
+    const S = solarShadow(moon, sun), x0 = 0.1 * W, sx = (0.78 * W) / S.sE, f = Math.max(1, Math.round((0.09 * W * S.sE) / (0.78 * W * S.rEarth))), yc = 0.23 * W, ty = (t) => yc - t * sx * f;
+    $('ewNote').textContent = T('sh.noteSolar', { f });
+    const aMax = S.sE * 1.1, poly = (fn, aEnd, fill) => { g.beginPath(); g.moveTo(x0, ty(fn(0))); g.lineTo(x0 + aEnd * sx, ty(fn(aEnd))); g.lineTo(x0 + aEnd * sx, ty(-fn(aEnd))); g.lineTo(x0, ty(-fn(0))); g.closePath(); g.fillStyle = fill; g.fill(); };
+    poly(S.penAt, aMax, 'rgba(255,255,255,.14)');
+    const aU = Math.min(S.Lu, aMax); poly(S.umbraAt, aU, 'rgba(0,0,0,.75)');
+    g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, yc); g.lineTo(x0 + aMax * sx, yc); g.setLineDash([2, 4]); g.stroke(); g.setLineDash([]);
+    if (S.Lu < aMax) { g.strokeStyle = 'rgba(255,255,255,.5)'; g.setLineDash([3, 3]); for (const sg of [1, -1]) { g.beginPath(); g.moveTo(x0 + S.Lu * sx, yc); g.lineTo(x0 + aMax * sx, ty(sg * -S.umbraAt(aMax))); g.stroke(); } g.setLineDash([]); }
+    disc(x0, yc, S.rMoon * sx * f, '#d8d8d8'); disc(x0 + S.sE * sx, ty(S.gamma * S.rEarth), S.rEarth * sx * f, '#2c5f9e', '#8fc1ff');
+    g.fillStyle = '#dcdcdc'; g.textAlign = 'left'; g.fillText(T('sh.moon'), x0 - 4, yc + 14 * k); g.textAlign = 'center'; g.fillText(T('sh.earth'), Math.min(x0 + S.sE * sx, W - 18 * k), Math.min(0.46 * W, ty(S.gamma * S.rEarth) + S.rEarth * sx * f + 10 * k));
+    g.fillStyle = '#ffd23c'; g.textAlign = 'left'; g.fillText(T('sh.toSun'), 4, 9 * k); g.strokeStyle = '#ffd23c'; g.beginPath(); g.moveTo(4, 16 * k); g.lineTo(0, 16 * k); g.stroke();
+    // plano fundamental (a escala): círculo de la Tierra, penumbra y umbra / antumbra
+    const cy = 0.74 * W, R = Math.min(3, Math.max(1.2, S.gamma + S.l1 + 0.1)), sc = (0.23 * W) / R, sxp = W / 2 + S.px * sc, syp = cy - S.py * sc;
+    g.save(); g.beginPath(); g.rect(0, 0.5 * W, W, 0.5 * W); g.clip();
+    disc(sxp, syp, S.l1 * sc, 'rgba(255,255,255,.16)', 'rgba(255,255,255,.4)');
+    S.l2 > 0 ? disc(sxp, syp, S.l2 * sc, 'rgba(0,0,0,.8)', '#fff') : disc(sxp, syp, -S.l2 * sc, null, '#fff', [3, 3]);
+    disc(W / 2, cy, sc, 'rgba(44,95,158,.55)', '#8fc1ff'); g.restore();
+    g.fillStyle = 'rgba(255,255,255,.6)'; g.textAlign = 'left'; g.fillText('N ↑', 6, 0.53 * W);
+    $('ewStat').textContent = S.kind === 'none' && S.gamma > 3 ? T('sh.k.none') : T('sh.statSolar', { kind: T('sh.k.' + S.kind), g: f2(S.gamma), u: Math.round(S.umbraKm).toLocaleString(locale()), p: Math.round(S.penumbraKm).toLocaleString(locale()) });
+  } else {
+    const L = lunarShadow(moon, sun), R = Math.max(L.rp + 0.3, Math.hypot(L.dx, L.dy) + L.sM + 0.1), sc = (W / 2 - 12 * k) / R, cx = W / 2, cy = W / 2, mx = cx - L.dx * sc, my = cy - L.dy * sc;
+    $('ewNote').textContent = T('sh.noteLunar');
+    disc(cx, cy, L.rp * sc, 'rgba(255,255,255,.12)', 'rgba(255,255,255,.35)'); disc(cx, cy, L.ru * sc, 'rgba(70,16,0,.7)', 'rgba(255,140,90,.7)');
+    disc(mx, my, L.sM * sc, '#d9d9d2');
+    g.save(); g.beginPath(); g.arc(mx, my, L.sM * sc, 0, 6.2832); g.clip();
+    disc(cx, cy, L.rp * sc, 'rgba(0,0,0,.25)'); disc(cx, cy, L.ru * sc, 'rgba(150,40,10,.7)'); g.restore();
+    disc(mx, my, L.sM * sc, null, 'rgba(255,255,255,.8)');
+    g.fillStyle = 'rgba(255,255,255,.7)'; g.textAlign = 'left'; g.fillText(T('sh.moon'), mx + L.sM * sc + 4, my);
+    $('ewStat').textContent = T('sh.statLunar', { kind: T('sh.l.' + L.kind), um: f2(L.umbMag), pm: f2(L.penMag) });
+  }
+}
+
 // ── Idioma: inglés por defecto; el botón EN / ES cambia la interfaz, los nombres de los astros y las constelaciones ──
 function applyUi() {
   const r = document.documentElement.style;
@@ -1276,7 +1326,7 @@ $('tPL').onclick = () => { ui.pl = !ui.pl; saveUi(); applyUi(); };
 $('tJson').onclick = () => { ui.js = !ui.js; saveUi(); applyUi(); refreshCard(); };
 $('panelOp').oninput = (e) => { ui.op = clampOpacity(+e.target.value / 100); saveUi(); applyUi(); };
 function applyLang() {
-  applyStatic(); rebuildObjList(); buildEvMenu(); relabelDrums(); setSpeed(speed); setDanjonLbl(); renderGDetail(); buildRgMenu(); if (geo.id) { geo.stamp = ''; geoTitle(); }
+  applyStatic(); rebuildObjList(); buildEvMenu(); relabelDrums(); setSpeed(speed); setDanjonLbl(); renderGDetail(); buildRgMenu(); ecl.stamp = ''; if (geo.id) { geo.stamp = ''; geoTitle(); }
   for (const f of minApply) f();
   for (const b of document.querySelectorAll('[data-lang]')) b.setAttribute('aria-pressed', b.dataset.lang === getLang());
   frame.gt = ''; fitKey = ''; renderPathChip(); updateTrackUI(); refreshCard(); dirty = true;
@@ -1393,7 +1443,7 @@ function frame(t) {
     setProjection();
     orient();
     renderer.render(scene, camera);
-    drawLabels(); drawGeo();
+    drawLabels(); drawGeo(); drawShadow();
   } else {
     if (last) { const S = last.Sol; globe.setSun(S.dec_deg, wrap180(S.ra_deg - (lstNow - obs.lon))); globe.setSidereal(lstNow - obs.lon); }
     globe.render(Math.min(dt, 0.1));
