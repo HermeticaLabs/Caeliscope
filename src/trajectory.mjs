@@ -4,16 +4,19 @@ export const DAY = 86400000;
 // Período sinódico (días) y cantidad de ciclos sinódicos que cierran (aprox.) la roseta completa.
 export const SYNODIC = { Luna: 29.530589, Mercurio: 115.8775, Venus: 583.9214, Marte: 779.9361, Jupiter: 398.884, Saturno: 378.0919, Urano: 369.656, Neptuno: 367.4867 };
 export const ROSETTE_CYCLES = { Mercurio: 22, Venus: 5, Marte: 7, Jupiter: 11, Saturno: 28, Urano: 83, Neptuno: 164 };
+// Saros: 223 lunaciones = 242 meses dracónicos = 18 años, 11 días y 8 horas; los eclipses se repiten casi iguales cada vez.
+export const SAROS_DAYS = 6585.3211;
+export const sarosReturn = (ms, dir = 1) => ms + dir * SAROS_DAYS * DAY;
 export const BODY_ORDER = ['Sol', 'Luna', 'Mercurio', 'Venus', 'Marte', 'Jupiter', 'Saturno', 'Urano', 'Neptuno'];
 
 // Alcances disponibles para cada astro, en orden de menú.
 export function rangesFor(body) {
   if (body === 'Sol') return ['12h', '3m', '6m', 'ana'];
-  if (body === 'Luna') return ['12h', '3m', '6m', 'syn'];
+  if (body === 'Luna') return ['12h', '3m', '6m', 'syn', 'saros'];
   return ROSETTE_CYCLES[body] ? ['12h', '3m', '6m', 'syn', 'ros'] : ['12h', '3m', '6m'];
 }
 export const isRange = (body, id) => rangesFor(body).includes(id);
-export const cycleDays = (body, id) => (id === 'syn' ? SYNODIC[body] : id === 'ros' ? SYNODIC[body] * ROSETTE_CYCLES[body] : id === 'ana' ? 365.2422 : null);
+export const cycleDays = (body, id) => (id === 'saros' ? SAROS_DAYS : id === 'syn' ? SYNODIC[body] : id === 'ros' ? SYNODIC[body] * ROSETTE_CYCLES[body] : id === 'ana' ? 365.2422 : null);
 
 // Configuración de cálculo: step (ms entre puntos), half (puntos a cada lado del centro), bucket (ms tras los cuales se recalcula),
 // long (true = coordenadas ecuatoriales de la fecha, contra las estrellas), anchored (true = ancla fija al crearla: analema).
@@ -25,10 +28,11 @@ export function rangeConfig(body, id) {
     const span = SYNODIC[body] * ROSETTE_CYCLES[body] * DAY, step = Math.max(DAY, span / 3000);
     return { long: true, step, half: Math.round(span / step / 2), bucket: span / 8, anchored: false };
   }
+  if (id === 'saros') { const span = SAROS_DAYS * DAY, step = span / 3000; return { long: true, step, half: 1500, bucket: span / 8, anchored: false }; }
   if (id === 'ana') return { long: false, step: DAY, half: 183, bucket: Infinity, anchored: true };   // mismo instante del día, un año
   return { long: false, step: 600000, half: 72, bucket: 6 * 3600000, anchored: false };               // '12h'
 }
-export const usesModal = (id) => id === 'syn' || id === 'ros' || id === 'ana';
+export const usesModal = (id) => id === 'syn' || id === 'ros' || id === 'ana' || id === 'saros';
 
 // Normaliza el mapa de alcances guardado: solo astros y alcances válidos.
 export function parseRanges(o) {

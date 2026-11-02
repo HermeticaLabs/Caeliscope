@@ -19,7 +19,7 @@ import { createLru } from './lru.mjs';
 import { CENTER, PRESETS, project as proj3, orbit, zoomBy, autoZ, extent } from './view3d.mjs';
 import { slideTo, findFree } from './winpos.mjs';
 import { solarShadow, lunarShadow, shadowMode } from './shadow.mjs';
-import { BODY_ORDER, rangesFor, rangeConfig, cycleDays, usesModal, retroFlags, stations, retroColor, tickPlan, tickTimes, rosettePoint, fitPoints } from './trajectory.mjs';
+import { SAROS_DAYS, sarosReturn, BODY_ORDER, rangesFor, rangeConfig, cycleDays, usesModal, retroFlags, stations, retroColor, tickPlan, tickTimes, rosettePoint, fitPoints } from './trajectory.mjs';
 import { fadeColor, wrap180 } from './globe-math.mjs';
 import { splashState, veilAlpha, IN_MS, OUT_MS, SKY_VEIL_MS, LEAVE_VEIL_MS } from './timeline.mjs';
 import { sunMagnitude, moonMagnitude, planetMagnitude, saturnRingSinB, AU_KM, NAKED_EYE_LIMIT } from './magnitudes.mjs';
@@ -1205,7 +1205,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('rgLi
 const geoTitle = () => { const p = paths.get(geo.id); if (p) $('gwTitle').textContent = bodyName(p.obj.key) + ' · ' + T('geo.' + p.range); };
 function openGeo(id) {
   if (!paths.has(id)) return; geo.id = id; geo.n = 0; geo.stamp = ''; geo.view = { ...CENTER }; geo.zex = 'auto'; $('geoWin').hidden = false; geoTitle(); syncGeoUi(); requestAnimationFrame(() => ensureWin($('geoWin')));
-  $('gwNote').textContent = T(paths.get(id).range === 'ana' ? 'geo.noteAna' : id === 'Luna' ? 'geo.noteMoon' : 'geo.noteRot');
+  $('gwNote').textContent = T(paths.get(id).range === 'ana' ? 'geo.noteAna' : paths.get(id).range === 'saros' ? 'geo.noteSaros' : id === 'Luna' ? 'geo.noteMoon' : 'geo.noteRot');
   dirty = true;
 }
 function closeGeo() { geo.id = null; $('geoWin').hidden = true; }
@@ -1228,7 +1228,7 @@ function drawGeo() {
   if (ana) {
     const maz = pts.reduce((a, q) => a + q.az, 0) / pts.length, mal = pts.reduce((a, q) => a + q.alt, 0) / pts.length;
     xy = pts.map((q) => [((q.az - maz + 540) % 360) - 180, q.alt - mal]);
-  } else xy = pts.map((q) => rosettePoint(q.lon, q.r));
+  } else xy = pts.map((q) => rosettePoint(p.range === 'saros' ? q.lon - q.sunLon : q.lon, q.r));   // Saros: Sol fijo a la derecha
   const ci = Math.min(Math.max(0, Math.round((simMs - pts[0].t) / p.cf.step)), pts.length - 1), sunNow = !ana && !isMoon ? rosettePoint(pts[ci].sunLon, 1) : null;
   if (geo.m3 && p.pts.length) { draw3D(g, W, k, p, pts, xy, ana, isMoon, ci); return $('gwStat').textContent = T('geo.done', { span: geoSpan(p) }); }
   const fit = fitPoints(xy, W, 26 * k, sunNow ? [[1, 0], [-1, 0], [0, 1], [0, -1]] : []);
@@ -1238,7 +1238,7 @@ function drawGeo() {
     if (sunNow) { g.strokeStyle = 'rgba(255,210,60,.3)'; g.setLineDash([3, 4]); g.beginPath(); g.arc(cx, cy, fit.k, 0, 6.2832); g.stroke(); }
     g.setLineDash([]); g.strokeStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.moveTo(cx - 5, cy); g.lineTo(cx + 5, cy); g.moveTo(cx, cy - 5); g.lineTo(cx, cy + 5); g.stroke();
     g.fillStyle = 'rgba(255,255,255,.7)'; g.textAlign = 'left'; g.fillText(T('geo.earth'), cx + 8, cy + 10);
-    g.fillStyle = 'rgba(255,255,255,.45)'; g.textAlign = 'right'; g.fillText('γ 0°', W - 5, cy - 8);
+    g.fillStyle = 'rgba(255,255,255,.45)'; g.textAlign = 'right'; g.fillText(p.range === 'saros' ? '☉ →' : 'γ 0°', W - 5, cy - 8);
     const sp = sunNow ? fit.to(sunNow) : null;
     if (sp) { g.fillStyle = '#ffd23c'; g.textAlign = 'center'; g.beginPath(); g.arc(sp[0], sp[1], 4, 0, 6.2832); g.fill(); g.fillText('☉', sp[0], sp[1] - 10 * k); }
   } else {
@@ -1275,7 +1275,7 @@ function draw3D(g, W, k, p, pts, xy, ana, isMoon, ci) {
     const e = Math.max(...xy.map((q) => Math.max(Math.abs(q[0]), Math.abs(q[1])))), t0 = pts[0].t, t1 = pts[pts.length - 1].t;
     w = xy.map((q, i) => [q[0], q[1], ((pts[i].t - t0) / (t1 - t0) - 0.5) * 1.8 * e]);
   } else {
-    w = pts.map((q) => { const c = Math.cos(q.lat * Math.PI / 180); return [q.r * c * Math.cos(q.lon * Math.PI / 180), q.r * c * Math.sin(q.lon * Math.PI / 180), q.r * Math.sin(q.lat * Math.PI / 180)]; });
+    w = pts.map((q) => { const c = Math.cos(q.lat * Math.PI / 180), lo = (p.range === 'saros' ? q.lon - q.sunLon : q.lon) * Math.PI / 180; return [q.r * c * Math.cos(lo), q.r * c * Math.sin(lo), q.r * Math.sin(q.lat * Math.PI / 180)]; });
     const z = geo.zex === 'auto' ? autoZ(w) : 1; geo.zn = z; $('gwZ').textContent = geo.zex === 'auto' ? T('geo.zex', { n: z }) : T('geo.zex1'); if (z !== 1) for (const q of w) q[2] *= z;
   }
   const ext = extent(w) * (ana ? 1.1 : 1.05), sc = ((W / 2 - 26 * k) / ext) * geo.view.zoom, v = geo.view, cx = W / 2, cy = W / 2;
@@ -1356,6 +1356,10 @@ function setShadow(on) {
 }
 $('tShadow').onclick = () => setShadow(!ecl.open);
 $('ewClose').onclick = () => setShadow(false);
+function setSaros(on) {
+  const f = (ms) => new Intl.DateTimeFormat(rgLoc(), { dateStyle: 'medium', timeZone: obsTz }).format(ms);
+  $('ewSaros').textContent = on ? T('sh.saros', { prev: f(sarosReturn(simMs, -1)), next: f(sarosReturn(simMs, 1)) }) : '';
+}
 function drawShadow() {
   if (!ecl.open || !last || $('eclWin').classList.contains('mini')) return;
   const stamp = [Math.round(simMs / 30000), tsNow(), getLang(), $('eclWin').clientWidth].join('|');
@@ -1384,6 +1388,7 @@ function drawShadow() {
     S.l2 > 0 ? disc(sxp, syp, S.l2 * sc, 'rgba(0,0,0,.8)', '#fff') : disc(sxp, syp, -S.l2 * sc, null, '#fff', [3, 3]);
     disc(W / 2, cy, sc, 'rgba(44,95,158,.55)', '#8fc1ff'); g.restore();
     g.fillStyle = 'rgba(255,255,255,.6)'; g.textAlign = 'left'; g.fillText('N ↑', 6, 0.53 * W);
+    setSaros(S.kind !== 'none');
     $('ewStat').textContent = S.kind === 'none' && S.gamma > 3 ? T('sh.k.none') : T('sh.statSolar', { kind: T('sh.k.' + S.kind), g: f2(S.gamma), u: Math.round(S.umbraKm).toLocaleString(locale()), p: Math.round(S.penumbraKm).toLocaleString(locale()) });
   } else {
     const L = lunarShadow(moon, sun), R = Math.max(L.rp + 0.3, Math.hypot(L.dx, L.dy) + L.sM + 0.1), sc = (W / 2 - 12 * k) / R, cx = W / 2, cy = W / 2, mx = cx - L.dx * sc, my = cy - L.dy * sc;
@@ -1394,6 +1399,7 @@ function drawShadow() {
     disc(cx, cy, L.rp * sc, 'rgba(0,0,0,.25)'); disc(cx, cy, L.ru * sc, 'rgba(150,40,10,.7)'); g.restore();
     disc(mx, my, L.sM * sc, null, 'rgba(255,255,255,.8)');
     g.fillStyle = 'rgba(255,255,255,.7)'; g.textAlign = 'left'; g.fillText(T('sh.moon'), mx + L.sM * sc + 4, my);
+    setSaros(L.kind !== 'none');
     $('ewStat').textContent = T('sh.statLunar', { kind: T('sh.l.' + L.kind), um: f2(L.umbMag), pm: f2(L.penMag) });
   }
 }

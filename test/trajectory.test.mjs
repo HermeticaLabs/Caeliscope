@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SYNODIC, ROSETTE_CYCLES, rangesFor, rangeConfig, cycleDays, parseRanges, retroFlags, stations, retroColor, tickPlan, tickTimes, rosettePoint, fitPoints, usesModal, DAY } from '../src/trajectory.mjs';
+import { SAROS_DAYS, sarosReturn, SYNODIC, ROSETTE_CYCLES, rangesFor, rangeConfig, cycleDays, parseRanges, retroFlags, stations, retroColor, tickPlan, tickTimes, rosettePoint, fitPoints, usesModal, DAY } from '../src/trajectory.mjs';
 
 test('cada astro ofrece sus alcances; solo el Sol tiene analema y solo los planetas tienen roseta', () => {
   assert.deepEqual(rangesFor('Sol'), ['12h', '3m', '6m', 'ana']);
-  assert.deepEqual(rangesFor('Luna'), ['12h', '3m', '6m', 'syn']);
+  assert.deepEqual(rangesFor('Luna'), ['12h', '3m', '6m', 'syn', 'saros']);
   for (const p of Object.keys(ROSETTE_CYCLES)) assert.deepEqual(rangesFor(p), ['12h', '3m', '6m', 'syn', 'ros']);
 });
 test('ciclos: sinódico de la Luna y roseta de Venus (5 ciclos ≈ 8 años)', () => {
@@ -14,7 +14,7 @@ test('ciclos: sinódico de la Luna y roseta de Venus (5 ciclos ≈ 8 años)', ()
   assert.ok(Math.abs(cycleDays('Mercurio', 'syn') - 115.88) < 0.01);
 });
 test('la configuración cubre el ciclo completo con una cantidad acotada de puntos', () => {
-  for (const [b, id] of [['Luna', 'syn'], ['Venus', 'ros'], ['Neptuno', 'ros'], ['Marte', 'syn'], ['Sol', 'ana']]) {
+  for (const [b, id] of [['Luna', 'syn'], ['Venus', 'ros'], ['Neptuno', 'ros'], ['Marte', 'syn'], ['Sol', 'ana'], ['Luna', 'saros']]) {
     const c = rangeConfig(b, id), pts = 2 * c.half + 1;
     assert.ok(pts <= 3100, `${b} ${id} ${pts}`);
     assert.ok(Math.abs(c.step * 2 * c.half - cycleDays(b, id) * DAY) < c.step * 2, `${b} ${id}`);
@@ -23,7 +23,7 @@ test('la configuración cubre el ciclo completo con una cantidad acotada de punt
   assert.equal(rangeConfig('Marte', '3m').long, true); assert.equal(rangeConfig('Marte', '12h').long, false);
 });
 test('el modal se abre solo para ciclo, roseta y analema', () => {
-  assert.deepEqual(['12h', '3m', '6m', 'syn', 'ros', 'ana'].map(usesModal), [false, false, false, true, true, true]);
+  assert.deepEqual(['12h', '3m', '6m', 'syn', 'ros', 'ana', 'saros'].map(usesModal), [false, false, false, true, true, true, true]);
 });
 test('parseRanges descarta alcances inválidos', () => {
   assert.deepEqual(parseRanges({ Sol: 'ana', Luna: 'ros', Marte: '6m', Foo: 'syn', Venus: 5 }), { Sol: 'ana', Marte: '6m' });
@@ -59,4 +59,9 @@ test('roseta: longitud 0° a la derecha, 90° arriba', () => {
 test('Venus: 5 pétalos = 13 órbitas suyas menos 8 de la Tierra en 8 años', () => {
   const years = cycleDays('Venus', 'ros') / 365.25, venusOrbits = years / 0.61519726, earthOrbits = years;
   assert.ok(Math.abs(venusOrbits - 13) < 0.1); assert.ok(Math.abs(venusOrbits - earthOrbits - 5) < 0.1);
+});
+test('Saros: 18 años y 11 días; el eclipse solar del 12‑ago‑2026 se repite el 23‑ago‑2044', () => {
+  assert.ok(Math.abs(SAROS_DAYS / 365.2422 - 18.03) < 0.01); assert.ok(Math.abs(SAROS_DAYS - 223 * SYNODIC.Luna) < 0.5);
+  const next = new Date(sarosReturn(Date.UTC(2026, 7, 12, 17, 46), 1)); assert.equal(next.toISOString().slice(0, 10), '2044-08-23');
+  assert.equal(new Date(sarosReturn(Date.UTC(2044, 7, 23, 1, 0), -1)).toISOString().slice(0, 10), '2026-08-12');
 });
