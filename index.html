@@ -128,6 +128,16 @@
   #eclWin .phdr .minbtn + .minbtn { margin-left: -4px; }
   #eclWin .phdr > span:first-child { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 1100px) { #eclWin { right: auto; left: 14px; top: auto; bottom: calc(var(--barH, 150px) + 24px); } }
+  #geoWin .phdr, #eclWin .phdr { cursor: grab; touch-action: none; user-select: none; }
+  #geoWin.dragging .phdr, #eclWin.dragging .phdr { cursor: grabbing; }
+  #geoWin.dragging, #eclWin.dragging { opacity: .92; }
+  .gwtools { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .gwtools[hidden] { display: none; }
+  .gwtools button, .gwbtns button { padding: 0 7px; font-size: calc(11px * var(--ts)); white-space: nowrap; }
+  .gwbtns { display: inline-flex; gap: 4px; }
+  .gwbtns button[hidden] { display: none; }
+  #gwMode[aria-pressed="true"] { border-color: var(--oro); background: rgba(220, 180, 80, .18); }
+  #gwCanvas.m3 { cursor: grab; touch-action: none; } #gwCanvas.m3:active { cursor: grabbing; }
   /* panel de tiempo: fecha y hora como pastillas con mini-selector, franja del día con marcas y control de velocidad segmentado */
   #bar { bottom: 14px; left: 50%; transform: translateX(-50%); width: min(calc(600px * var(--ts)), 96vw); box-sizing: border-box; padding: 9px 16px 12px; }
   .chip { font-size: calc(10px * var(--ts)); letter-spacing: .16em; padding: 0 10px; line-height: calc(20px * var(--ts)); border-radius: 999px; border: 1px solid rgba(94, 223, 229, .4); color: var(--cian); background: rgba(94, 223, 229, .08); }
@@ -271,7 +281,8 @@
   <div class="phdr"><span id="gwTitle"></span><button class="minbtn" type="button">–</button><button class="minbtn" id="gwClose" type="button" data-i18n-aria="geo.close" data-i18n-title="geo.close">✕</button></div>
   <canvas id="gwCanvas" role="img"></canvas>
   <div id="gwNote" class="gwnote"></div>
-  <div class="gwbar"><span id="gwStat"></span><button id="gwReplay" type="button" data-i18n="geo.replay"></button></div>
+  <div class="gwtools" id="gwTools" hidden><button id="gwTop" type="button" data-i18n="geo.top"></button><button id="gwFront" type="button" data-i18n="geo.front"></button><button id="gwSide" type="button" data-i18n="geo.side"></button><button id="gwZ" type="button"></button><button id="gwCenter" type="button" data-i18n="geo.center" data-i18n-title="geo.centerTitle"></button></div>
+  <div class="gwbar"><span id="gwStat"></span><span class="gwbtns"><button id="gwMode" type="button" aria-pressed="false" data-i18n-title="geo.mode3dTitle"></button><button id="gwReplay" type="button" data-i18n="geo.replay"></button></span></div>
 </div>
 <div id="eclWin" class="hud skyhud" data-min="ew" hidden>
   <div class="phdr"><span id="ewTitle"></span><button class="minbtn" type="button">–</button><button class="minbtn" id="ewClose" type="button" data-i18n-aria="sh.close" data-i18n-title="sh.close">✕</button></div>

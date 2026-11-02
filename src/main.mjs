@@ -15,6 +15,9 @@ import { followStep } from './tracking.mjs';
 import { buildLandscape, skylineAt, LAND_W } from './landscape.mjs';
 import { tzAt, toInputValue, fromInputValue, dayIndex, fmtOffset, zoneName, fmtClock, fmtHM, fmtDateTime, partsAt, wallToMs, stepWall } from './timezone.mjs';
 import { Globe } from './globe.mjs';
+import { createLru } from './lru.mjs';
+import { CENTER, PRESETS, project as proj3, orbit, zoomBy, autoZ, extent } from './view3d.mjs';
+import { slideTo, findFree } from './winpos.mjs';
 import { solarShadow, lunarShadow, shadowMode } from './shadow.mjs';
 import { BODY_ORDER, rangesFor, rangeConfig, cycleDays, usesModal, retroFlags, stations, retroColor, tickPlan, tickTimes, rosettePoint, fitPoints } from './trajectory.mjs';
 import { fadeColor, wrap180 } from './globe-math.mjs';
@@ -608,12 +611,14 @@ function renderPathChip() {
   if (trails.on) pill(T(trails.mode === 1 ? 'chip.trailsLive' : 'chip.trailsCycle'), STAR_PATH, () => setTrailMode(0));
   chip.hidden = !paths.size && !trails.on;
 }
+const geomCache = createLru(5), HEAVY = new Set(['syn', 'ros', 'ana']);   // como mucho 5 geometrías largas guardadas; las más antiguas se descartan
 const pmeshes = (p) => [p.past, p.fut, p.pastR, p.futR];
 function addPath(o) {
   const id = pathId(o); if (paths.has(id)) return;
   const col = colorOf(o), range = o.kind === 'body' ? rangeOf(o.key) : '12h', cf = rangeConfig(o.key, range), long = o.kind === 'body' && cf.long, rot = long ? dateU : idU, rcol = retroColor(col);
   const mk = (c, al) => makeLines(new Float32Array(6), c, rot, al, 4);
   const p = { obj: { kind: o.kind, key: o.key, i: o.i }, col, rcol, range, cf, long, anchor: simMs, past: mk(col, 0.35), fut: mk(col, 0.95), pastR: mk(rcol, 0.45), futR: mk(rcol, 1), key: '', pts: [], live: [], splitAt: 0, ticks: [], plan: null, sts: [] };
+  if (HEAVY.has(range)) { const heavy = [...paths].filter(([, q]) => HEAVY.has(q.range)); while (heavy.length >= 3) removePath(heavy.shift()[0]); }   // a lo sumo 3 geometrías largas calculándose o en pantalla a la vez
   paths.set(id, p); for (const m of pmeshes(p)) m.visible = false;
   renderPathChip();
 }
@@ -641,7 +646,10 @@ function computePath(id, p, key, bucket) {
     p.sts = stations(fl); p.plan = tickPlan(pts[pts.length - 1].t - pts[0].t);
     p.ticks = tickTimes(pts[0].t, pts[pts.length - 1].t, p.plan).map((t) => ({ t, i: Math.min(pts.length - 1, Math.max(0, Math.round((t - pts[0].t) / cf.step))) }));
     p.pts = pts; splitPath(p);
+    if (ck) geomCache.set(ck, { pts, sts: p.sts, plan: p.plan, ticks: p.ticks });
   };
+  const ck = o.kind === 'body' && p.range !== '12h' ? `${o.key}|${p.range}|${cf.anchored ? Math.round(p.anchor / 60000) : bucket}|${obs.lat}|${obs.lon}` : null, hit = ck && geomCache.get(ck);
+  if (hit) { p.live = hit.pts; p.sts = hit.sts; p.plan = hit.plan; p.ticks = hit.ticks; p.pts = hit.pts; return splitPath(p); }
   if (o.kind === 'star') {
     const e = starVec(o.i);
     for (let k = -cf.half; k <= cf.half; k++) { const t = tc + k * cf.step; pts.push({ t, v: rotVec(skyRotation(lstNow + (360.98564736629 * (t - simMs)) / 86400000, obs.lat, tNow), e), ra: 0 }); }
@@ -652,7 +660,7 @@ function computePath(id, p, key, bucket) {
     if (p.key !== key || !paths.has(id)) return;
     for (let c = 0; c < 24 && k <= cf.half; c++, k++) {
       const t = tc + k * cf.step, sn = snapAt(t), b = sn.bodies[o.key], su = sn.bodies.Sol;
-      pts.push({ t, v: p.long ? equatorialVector(b.ra_deg, b.dec_deg) : dirFromAltAz(b.alt_apparent_deg, b.az_deg), ra: b.ra_deg, alt: b.alt_apparent_deg, az: b.az_deg, lon: b.lon_ecl_geocentric_deg ?? b.lon_ecl_deg, sunLon: su.lon_ecl_geocentric_deg ?? su.lon_ecl_deg, r: o.key === 'Luna' ? b.dist_km : b.dist_au });
+      pts.push({ t, v: p.long ? equatorialVector(b.ra_deg, b.dec_deg) : dirFromAltAz(b.alt_apparent_deg, b.az_deg), ra: b.ra_deg, alt: b.alt_apparent_deg, az: b.az_deg, lon: b.lon_ecl_geocentric_deg ?? b.lon_ecl_deg, lat: b.lat_ecl_geocentric_deg ?? b.lat_ecl_deg ?? 0, sunLon: su.lon_ecl_geocentric_deg ?? su.lon_ecl_deg, r: o.key === 'Luna' ? b.dist_km : b.dist_au });
     }
     if (k <= cf.half) setTimeout(chunk, 0); else finish();
   })();
@@ -1156,7 +1164,7 @@ for (const id of ['lat', 'lon']) $(id).onchange = () => {
 };
 
 // ── Menú en cascada "Alcance de la trayectoria": cada astro con sus propios alcances ──
-const geo = { id: null, n: 0, stamp: '' };
+const geo = { id: null, n: 0, stamp: '', m3: false, view: { ...CENTER }, zex: 'auto' };
 const rgSpanText = (b, id) => { const d = cycleDays(b, id); return T('rng.' + id, { d: d && d.toFixed(d < 100 ? 2 : 0).replace(/\.?0+$/, ''), y: d && (d / 365.25).toFixed(1) }); };
 function buildRgMenu() {
   const list = $('rgList'); list.replaceChildren();
@@ -1196,7 +1204,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('rgLi
 // ── Ventana de geometría: cómo se genera, en vivo, el ciclo / roseta / analema del astro ──
 const geoTitle = () => { const p = paths.get(geo.id); if (p) $('gwTitle').textContent = bodyName(p.obj.key) + ' · ' + T('geo.' + p.range); };
 function openGeo(id) {
-  if (!paths.has(id)) return; geo.id = id; geo.n = 0; geo.stamp = ''; $('geoWin').hidden = false; geoTitle();
+  if (!paths.has(id)) return; geo.id = id; geo.n = 0; geo.stamp = ''; geo.view = { ...CENTER }; geo.zex = 'auto'; $('geoWin').hidden = false; geoTitle(); syncGeoUi(); requestAnimationFrame(() => ensureWin($('geoWin')));
   $('gwNote').textContent = T(paths.get(id).range === 'ana' ? 'geo.noteAna' : id === 'Luna' ? 'geo.noteMoon' : 'geo.noteRot');
   dirty = true;
 }
@@ -1210,7 +1218,7 @@ function drawGeo() {
   const pts = p.pts.length ? p.pts : p.live, total = 2 * p.cf.half + 1;
   if (!pts.length) return;
   geo.n = Math.min(pts.length, geo.n + Math.max(2, total / 240));
-  const stamp = [Math.floor(geo.n), pts.length, Math.round(simMs / 60000), p.range, tsNow(), getLang(), ui.pl, win.clientWidth].join('|');
+  const stamp = [Math.floor(geo.n), pts.length, Math.round(simMs / 60000), p.range, tsNow(), getLang(), ui.pl, win.clientWidth, geo.m3, geo.view.yaw, geo.view.pitch, geo.view.zoom, geo.zex, !!p.pts.length].join('|');
   if (stamp === geo.stamp) return; geo.stamp = stamp;
   const cv = $('gwCanvas'), W = cv.clientWidth || 280, dpr = Math.min(2, devicePixelRatio || 1);
   if (cv.width !== Math.round(W * dpr)) { cv.width = cv.height = Math.round(W * dpr); } cv.style.height = W + 'px';
@@ -1222,6 +1230,7 @@ function drawGeo() {
     xy = pts.map((q) => [((q.az - maz + 540) % 360) - 180, q.alt - mal]);
   } else xy = pts.map((q) => rosettePoint(q.lon, q.r));
   const ci = Math.min(Math.max(0, Math.round((simMs - pts[0].t) / p.cf.step)), pts.length - 1), sunNow = !ana && !isMoon ? rosettePoint(pts[ci].sunLon, 1) : null;
+  if (geo.m3 && p.pts.length) { draw3D(g, W, k, p, pts, xy, ana, isMoon, ci); return $('gwStat').textContent = T('geo.done', { span: geoSpan(p) }); }
   const fit = fitPoints(xy, W, 26 * k, sunNow ? [[1, 0], [-1, 0], [0, 1], [0, -1]] : []);
   g.lineWidth = 1; g.font = `${10 * k}px Georgia`; g.textBaseline = 'middle';
   if (!ana) {
@@ -1255,15 +1264,95 @@ function drawGeo() {
     for (const tk of p.ticks) if (tk.i < n) { const c = fit.to(xy[tk.i]); g.beginPath(); g.arc(c[0], c[1], 1.8, 0, 6.2832); g.fill(); const right = c[0] > W - 48 * k; g.textAlign = right ? 'right' : 'left'; g.fillText(fmtTick(tk.t, p.plan, p), c[0] + (right ? -4 : 4), c[1] - 5); }
     g.fillStyle = retro; for (const st of p.sts) if (st.i < n) { const c = fit.to(xy[st.i]); g.fillText(st.kind === 'R' ? '℞' : 'D', c[0] + 5, c[1] + 9); }
   }
-  const done = p.pts.length && n >= pts.length, cd = cycleDays(p.obj.key, p.range);
-  const span = cd >= 1000 ? (cd / 365.25).toFixed(1) + (getLang() === 'es' ? ' años' : ' years') : Math.round(cd) + (getLang() === 'es' ? ' días' : ' days');
-  $('gwStat').textContent = done ? T('geo.done', { span }) : T('geo.drawing', { n: Math.min(99, Math.floor((100 * n) / total)) });
+  const done = p.pts.length && n >= pts.length;
+  $('gwStat').textContent = done ? T('geo.done', { span: geoSpan(p) }) : T('geo.drawing', { n: Math.min(99, Math.floor((100 * n) / total)) });
 }
+const geoSpan = (p) => { const cd = cycleDays(p.obj.key, p.range); return cd >= 1000 ? (cd / 365.25).toFixed(1) + (getLang() === 'es' ? ' años' : ' years') : Math.round(cd) + (getLang() === 'es' ? ' días' : ' days'); };
+// Vista 3D de un ciclo completo: planetas y Luna en coordenadas eclípticas geocéntricas (X hacia γ 0°, Z al norte eclíptico); analema en azimut, altura y tiempo.
+function draw3D(g, W, k, p, pts, xy, ana, isMoon, ci) {
+  let w;
+  if (ana) {
+    const e = Math.max(...xy.map((q) => Math.max(Math.abs(q[0]), Math.abs(q[1])))), t0 = pts[0].t, t1 = pts[pts.length - 1].t;
+    w = xy.map((q, i) => [q[0], q[1], ((pts[i].t - t0) / (t1 - t0) - 0.5) * 1.8 * e]);
+  } else {
+    w = pts.map((q) => { const c = Math.cos(q.lat * Math.PI / 180); return [q.r * c * Math.cos(q.lon * Math.PI / 180), q.r * c * Math.sin(q.lon * Math.PI / 180), q.r * Math.sin(q.lat * Math.PI / 180)]; });
+    const z = geo.zex === 'auto' ? autoZ(w) : 1; geo.zn = z; $('gwZ').textContent = geo.zex === 'auto' ? T('geo.zex', { n: z }) : T('geo.zex1'); if (z !== 1) for (const q of w) q[2] *= z;
+  }
+  const ext = extent(w) * (ana ? 1.1 : 1.05), sc = ((W / 2 - 26 * k) / ext) * geo.view.zoom, v = geo.view, cx = W / 2, cy = W / 2;
+  const P = (q) => { const r = proj3(q, v); return { x: cx + r.x * sc, y: cy - r.up * sc, d: r.depth / ext }; };
+  g.lineWidth = 1; g.font = `${10 * k}px Georgia`; g.textBaseline = 'middle'; g.textAlign = 'center';
+  // ejes X, Y, Z con su etiqueta; en los planetas, además, el anillo de 1 UA sobre el plano de la eclíptica
+  const ax = [[[1, 0, 0], ana ? T('geo.axAz') : T('geo.axX'), '#ff8a7a'], [[0, 1, 0], ana ? T('geo.axAlt') : T('geo.axY'), '#8aff9a'], [[0, 0, 1], ana ? T('geo.axT') : T('geo.axZ'), '#8ab4ff']];
+  for (const [d, label, col] of ax) {
+    const a = P(d.map((c) => -c * ext * 0.9)), b = P(d.map((c) => c * ext * 0.9)); g.strokeStyle = col; g.globalAlpha = 0.45; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); g.globalAlpha = 1;
+    g.fillStyle = col; g.fillText(label, b.x + (b.x >= cx ? 9 : -9) * k, b.y);
+  }
+  if (!ana && !isMoon) { g.strokeStyle = 'rgba(255,210,60,.3)'; g.setLineDash([3, 4]); g.beginPath(); for (let i = 0; i <= 72; i++) { const a = (i / 72) * 6.2832, q = P([Math.cos(a), Math.sin(a), 0]); i ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y); } g.stroke(); g.setLineDash([]); }
+  const o = P([0, 0, 0]); if (!ana) { g.fillStyle = '#8fc1ff'; g.beginPath(); g.arc(o.x, o.y, 3.5, 0, 6.2832); g.fill(); g.fillStyle = 'rgba(255,255,255,.7)'; g.textAlign = 'left'; g.fillText(T('sh.earth'), o.x + 6, o.y + 9); }
+  const base = rgbCss(p.col), retro = rgbCss(p.rcol); g.lineWidth = 1.6; g.lineJoin = 'round'; g.lineCap = 'round';
+  let prev = P(w[0]);
+  for (let i = 1; i < w.length; i++) {
+    const q = P(w[i]); g.globalAlpha = Math.min(1, Math.max(0.25, 0.65 + 0.7 * ((q.d + prev.d) / 2))); g.strokeStyle = pts[i].retro ? retro : base;
+    g.beginPath(); g.moveTo(prev.x, prev.y); g.lineTo(q.x, q.y); g.stroke(); prev = q;
+  }
+  g.globalAlpha = 1; const c = P(w[ci]); g.fillStyle = pts[ci].retro ? retro : base; g.strokeStyle = '#fff'; g.beginPath(); g.arc(c.x, c.y, 4.5, 0, 6.2832); g.fill(); g.stroke();
+  g.fillStyle = 'rgba(235,235,245,.65)'; g.textAlign = 'left'; g.fillText(T('geo.hint3d'), 6, W - 10 * k);
+  if (!ana && geo.zn !== 1) { g.textAlign = 'right'; g.fillText(T('geo.zex', { n: geo.zn }), W - 6, 10 * k); }
+}
+function syncGeoUi() {
+  $('gwMode').textContent = T(geo.m3 ? 'geo.m2' : 'geo.m3'); $('gwMode').setAttribute('aria-pressed', geo.m3);
+  $('gwTools').hidden = !geo.m3; $('gwReplay').hidden = geo.m3; $('gwCanvas').classList.toggle('m3', geo.m3);
+  const p = paths.get(geo.id); $('gwZ').hidden = !!p && p.range === 'ana';
+  $('gwZ').textContent = geo.zex === 'auto' ? T('geo.zex', { n: geo.zn || '·' }) : T('geo.zex1'); geo.stamp = ''; dirty = true;
+}
+$('gwMode').onclick = () => { geo.m3 = !geo.m3; geo.view = { ...CENTER }; syncGeoUi(); };
+$('gwCenter').onclick = () => { geo.view = { ...CENTER }; geo.zex = 'auto'; syncGeoUi(); };
+for (const [id, name] of [['gwTop', 'top'], ['gwFront', 'front'], ['gwSide', 'side']]) $(id).onclick = () => { geo.view = { ...geo.view, ...PRESETS[name] }; geo.stamp = ''; };
+$('gwZ').onclick = () => { geo.zex = geo.zex === 'auto' ? 1 : 'auto'; syncGeoUi(); };
+{ // arrastrar para girar (X, Y, Z), rueda para acercar, doble clic para centrar
+  const cv = $('gwCanvas'); let drag = null;
+  cv.addEventListener('pointerdown', (e) => { if (!geo.m3) return; drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', (e) => { if (!drag) return; geo.view = orbit(geo.view, e.clientX - drag.x, e.clientY - drag.y); drag = { x: e.clientX, y: e.clientY }; });
+  const end = () => { drag = null; }; cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+  cv.addEventListener('wheel', (e) => { if (!geo.m3) return; e.preventDefault(); geo.view = zoomBy(geo.view, e.deltaY); }, { passive: false });
+  cv.addEventListener('dblclick', () => { if (geo.m3) $('gwCenter').click(); });
+}
+
+// ── Ventanas flotantes (geometría y guía de sombra): se arrastran desde la barra de título y nunca se superponen con otro panel ──
+const FLOAT_KEY = 'caeliscope.winpos'; let fpos = {}; try { fpos = JSON.parse(localStorage.getItem(FLOAT_KEY) || '{}') || {}; } catch { /* sin almacenamiento */ }
+const rectOf = (el) => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
+const othersOf = (el) => [...document.querySelectorAll('.hud.skyhud')].filter((o) => o !== el && o.id !== 'fovBox' && !o.hidden && getComputedStyle(o).display !== 'none').map(rectOf);
+const placeWin = (el, x, y) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.right = 'auto'; el.style.bottom = 'auto'; };
+let ensuring = false;
+function ensureWin(el) {
+  if (el.hidden || ensuring || el.classList.contains('dragging')) return;
+  ensuring = true;
+  try {
+    const sv = fpos[el.id]; if (sv && !el.dataset.placed) { placeWin(el, sv.x, sv.y); } el.dataset.placed = '1';
+    const r = rectOf(el), f = findFree(r, othersOf(el), innerWidth, innerHeight);
+    if (Math.abs(f.x - r.x) > 0.5 || Math.abs(f.y - r.y) > 0.5) placeWin(el, f.x, f.y);
+  } finally { ensuring = false; }
+}
+for (const el of [$('geoWin'), $('eclWin')]) {
+  const bar = el.querySelector('.phdr'); let d = null;
+  bar.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    const r = rectOf(el); d = { px: e.clientX, py: e.clientY, x: r.x, y: r.y }; bar.setPointerCapture(e.pointerId); el.classList.add('dragging');
+  });
+  bar.addEventListener('pointermove', (e) => {
+    if (!d) return; const r = rectOf(el), n = slideTo(r, d.x + e.clientX - d.px, d.y + e.clientY - d.py, othersOf(el), innerWidth, innerHeight);
+    if (n.x !== r.x || n.y !== r.y) placeWin(el, n.x, n.y);
+  });
+  const end = () => { if (!d) return; d = null; el.classList.remove('dragging'); const r = rectOf(el); fpos[el.id] = { x: Math.round(r.x), y: Math.round(r.y) }; try { localStorage.setItem(FLOAT_KEY, JSON.stringify(fpos)); } catch { /* sin almacenamiento */ } };
+  bar.addEventListener('pointerup', end); bar.addEventListener('pointercancel', end);
+  if (window.ResizeObserver) new ResizeObserver(() => ensureWin(el)).observe(el);
+}
+addEventListener('resize', () => { for (const el of [$('geoWin'), $('eclWin')]) ensureWin(el); });
 
 // ── Guía de sombra: conos de umbra y penumbra del eclipse (solar: sombra de la Luna; lunar: sombra de la Tierra) en el instante actual ──
 const ecl = { open: false, stamp: '' };
 function setShadow(on) {
-  ecl.open = on; $('eclWin').hidden = !on; $('tShadow').setAttribute('aria-pressed', on); ecl.stamp = ''; dirty = true;
+  ecl.open = on; $('eclWin').hidden = !on; $('tShadow').setAttribute('aria-pressed', on); ecl.stamp = ''; dirty = true; if (on) requestAnimationFrame(() => ensureWin($('eclWin')));
 }
 $('tShadow').onclick = () => setShadow(!ecl.open);
 $('ewClose').onclick = () => setShadow(false);
@@ -1326,7 +1415,7 @@ $('tPL').onclick = () => { ui.pl = !ui.pl; saveUi(); applyUi(); };
 $('tJson').onclick = () => { ui.js = !ui.js; saveUi(); applyUi(); refreshCard(); };
 $('panelOp').oninput = (e) => { ui.op = clampOpacity(+e.target.value / 100); saveUi(); applyUi(); };
 function applyLang() {
-  applyStatic(); rebuildObjList(); buildEvMenu(); relabelDrums(); setSpeed(speed); setDanjonLbl(); renderGDetail(); buildRgMenu(); ecl.stamp = ''; if (geo.id) { geo.stamp = ''; geoTitle(); }
+  applyStatic(); syncGeoUi(); rebuildObjList(); buildEvMenu(); relabelDrums(); setSpeed(speed); setDanjonLbl(); renderGDetail(); buildRgMenu(); ecl.stamp = ''; if (geo.id) { geo.stamp = ''; geoTitle(); }
   for (const f of minApply) f();
   for (const b of document.querySelectorAll('[data-lang]')) b.setAttribute('aria-pressed', b.dataset.lang === getLang());
   frame.gt = ''; fitKey = ''; renderPathChip(); updateTrackUI(); refreshCard(); dirty = true;
