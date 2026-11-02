@@ -111,6 +111,17 @@
   #pathChip[hidden] { display: none; }
   #pathChip .pp { display: inline-flex; align-items: center; gap: 4px; padding: 0 4px 0 8px; border-radius: 12px; border: 1px solid var(--pc); background: color-mix(in srgb, var(--pc) 18%, transparent); font-size: calc(12px * var(--ts)); }
   #pathChip .pp button { padding: 0 5px; border: 0; background: transparent; font-size: calc(12px * var(--ts)); }
+  /* ventana de geometría (roseta, ciclo sinódico, analema) */
+  #rgList { position: absolute; left: 10px; right: 10px; top: 0; }
+  #rgBtn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; }
+  #geoWin { top: 96px; right: calc(262px * var(--ts) + 56px); width: calc(300px * var(--ts)); box-sizing: border-box; padding: 10px 12px 10px; z-index: 7; }
+  #geoWin[hidden] { display: none; }
+  #gwCanvas { display: block; width: 100%; aspect-ratio: 1; border-radius: 10px; background: rgba(0, 0, 8, .55); border: 1px solid rgba(255, 255, 255, .08); }
+  .gwnote { font-size: calc(11px * var(--ts)); color: var(--lila); line-height: 1.35; margin: 6px 0 2px; }
+  .gwbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: calc(11px * var(--ts)); }
+  #gwReplay { padding: 0 8px; }
+  #geoWin .phdr .minbtn + .minbtn { margin-left: -4px; }
+  #geoWin .phdr > span:first-child { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* panel de tiempo: fecha y hora como pastillas con mini-selector, franja del día con marcas y control de velocidad segmentado */
   #bar { bottom: 14px; left: 50%; transform: translateX(-50%); width: min(calc(600px * var(--ts)), 96vw); box-sizing: border-box; padding: 9px 16px 12px; }
   .chip { font-size: calc(10px * var(--ts)); letter-spacing: .16em; padding: 0 10px; line-height: calc(20px * var(--ts)); border-radius: 999px; border: 1px solid rgba(94, 223, 229, .4); color: var(--cian); background: rgba(94, 223, 229, .08); }
@@ -149,15 +160,15 @@
   .langsw.wide { display: flex; margin: 2px 0 6px; } .langsw.wide button { flex: 1; font-size: calc(12px * var(--ts)); }
   .evmenu { position: relative; margin: 2px 0 6px; }
   #evBtn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; }
-  #evList, #evList ul { list-style: none; margin: 0; padding: 4px; background: #080b14; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; box-shadow: 0 6px 22px rgba(0,0,0,.55); z-index: 20; }
-  #evList { position: absolute; left: 0; right: 0; top: calc(100% + 3px); }
-  #evList li { position: relative; }
-  #evList li > button { width: 100%; display: flex; justify-content: space-between; gap: 10px; text-align: left; border: 0; background: transparent; padding: 4px 8px; }
-  #evList li > button:hover, #evList li > button:focus-visible, #evList li.open > button { background: rgba(255,255,255,.14); }
-  #evList li > button.cur { color: var(--oro); }
-  #evList li > ul { position: absolute; right: calc(100% + 4px); top: -5px; min-width: 130px; display: none; }
-  #evList li.open > ul { display: block; }
-  #evList .note { display: block; padding: 3px 8px 2px; font-size: calc(11px * var(--ts)); color: var(--lila); }
+  #evList, #evList ul, #rgList, #rgList ul { list-style: none; margin: 0; padding: 4px; background: #080b14; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; box-shadow: 0 6px 22px rgba(0,0,0,.55); z-index: 20; }
+  #evList, #rgList { position: absolute; left: 0; right: 0; top: calc(100% + 3px); }
+  #evList li, #rgList li { position: relative; }
+  #evList li > button, #rgList li > button { width: 100%; display: flex; justify-content: space-between; gap: 10px; text-align: left; border: 0; background: transparent; padding: 4px 8px; }
+  #evList li > button:hover, #evList li > button:focus-visible, #evList li.open > button, #rgList li > button:hover, #rgList li > button:focus-visible, #rgList li.open > button { background: rgba(255,255,255,.14); }
+  #evList li > button.cur, #rgList li > button.cur { color: var(--oro); }
+  #evList li > ul, #rgList li > ul { position: absolute; right: calc(100% + 4px); top: -5px; min-width: 130px; display: none; }
+  #evList li.open > ul, #rgList li.open > ul { display: block; }
+  #evList .note, #rgList .note { display: block; padding: 3px 8px 2px; font-size: calc(11px * var(--ts)); color: var(--lila); }
   #calPop { left: 50%; bottom: calc(var(--barH, 150px) + 22px); transform: translateX(-50%); padding: 12px 14px; z-index: 12; width: calc(290px * var(--ts)); box-sizing: border-box; }
   #calPop label { white-space: nowrap; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 6px 0; color: var(--lila); }
   #calPop input { width: calc(140px * var(--ts)); color-scheme: dark; }
@@ -224,7 +235,7 @@
     <button id="tConst" aria-pressed="false" data-i18n="opt.const"></button><button id="tNames" aria-pressed="false" data-i18n="opt.names"></button>
     <button id="tMW" aria-pressed="true" data-i18n="opt.mw"></button><button id="tGround" aria-pressed="true" data-i18n="opt.ground"></button>
     <button id="tAz" aria-pressed="false" data-i18n="opt.az" data-i18n-title="opt.key.z"></button><button id="tEq" aria-pressed="false" data-i18n="opt.eq" data-i18n-title="opt.key.e"></button>
-    <button id="tEcl" aria-pressed="false" data-i18n="opt.ecl" data-i18n-title="opt.key.4"></button><button id="tMer" aria-pressed="false" data-i18n="opt.mer" data-i18n-title="opt.key.6"></button><button id="tNight" aria-pressed="false" data-i18n="opt.night" data-i18n-title="opt.nightTitle"></button><button id="tJson" aria-pressed="false" data-i18n="opt.jsonBtn" data-i18n-title="opt.jsonTitle"></button>
+    <button id="tEcl" aria-pressed="false" data-i18n="opt.ecl" data-i18n-title="opt.key.4"></button><button id="tMer" aria-pressed="false" data-i18n="opt.mer" data-i18n-title="opt.key.6"></button><button id="tNight" aria-pressed="false" data-i18n="opt.night" data-i18n-title="opt.nightTitle"></button><button id="tJson" aria-pressed="false" data-i18n="opt.jsonBtn" data-i18n-title="opt.jsonTitle"></button><button id="tPL" aria-pressed="true" data-i18n="opt.pathLabels" data-i18n-title="opt.pathLabelsTitle"></button>
   </div>
   <small data-i18n="opt.land"></small>
   <select id="land" data-i18n-aria="opt.landAria"><option value="1" selected data-i18n="opt.land.1"></option><option value="2" data-i18n="opt.land.2"></option><option value="3" data-i18n="opt.land.3"></option><option value="0" data-i18n="opt.land.0"></option></select>
@@ -235,10 +246,11 @@
   <small id="danjonLbl"></small>
   <input id="danjon" type="range" min="0" max="4" step="0.1" value="2">
   <small data-i18n="opt.span"></small>
-  <select id="pathSpan" data-i18n-aria="opt.span"><option value="0" data-i18n="opt.span.0"></option><option value="1" data-i18n="opt.span.1"></option><option value="2" data-i18n="opt.span.2"></option></select>
+  <div class="evmenu" id="rgMenu"><button id="rgBtn" aria-haspopup="true" aria-expanded="false"><span id="rgLabel" data-i18n="opt.spanNow"></span><span class="car">▾</span></button></div>
   <small data-i18n="opt.opacity"></small>
   <input id="panelOp" type="range" min="20" max="100" step="1" value="100" data-i18n-aria="opt.opacity">
   </div>
+  <ul id="rgList" role="menu" hidden></ul>
   <hr>
   <small data-i18n="ev.title"></small>
   <div class="evmenu" id="evMenu">
@@ -248,6 +260,12 @@
   <div class="layers"><button id="evPrev" data-i18n="ev.prev"></button><button id="evNext" data-i18n="ev.next"></button></div>
   <small data-i18n-html="opt.help"></small>
   <small class="legal" data-i18n-html="opt.legal"></small>
+</div>
+<div id="geoWin" class="hud skyhud" data-min="gw" hidden>
+  <div class="phdr"><span id="gwTitle"></span><button class="minbtn" type="button">–</button><button class="minbtn" id="gwClose" type="button" data-i18n-aria="geo.close" data-i18n-title="geo.close">✕</button></div>
+  <canvas id="gwCanvas" role="img"></canvas>
+  <div id="gwNote" class="gwnote"></div>
+  <div class="gwbar"><span id="gwStat"></span><button id="gwReplay" type="button" data-i18n="geo.replay"></button></div>
 </div>
 <div id="trackChip" class="hud skyhud" hidden><span id="trackName"></span><button id="trackStop" data-i18n-aria="chip.stop">✕</button></div>
 <div id="pathChip" class="hud skyhud" hidden></div>

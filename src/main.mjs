@@ -15,6 +15,7 @@ import { followStep } from './tracking.mjs';
 import { buildLandscape, skylineAt, LAND_W } from './landscape.mjs';
 import { tzAt, toInputValue, fromInputValue, dayIndex, fmtOffset, zoneName, fmtClock, fmtHM, fmtDateTime, partsAt, wallToMs, stepWall } from './timezone.mjs';
 import { Globe } from './globe.mjs';
+import { BODY_ORDER, rangesFor, rangeConfig, cycleDays, usesModal, retroFlags, stations, retroColor, tickPlan, tickTimes, rosettePoint, fitPoints } from './trajectory.mjs';
 import { fadeColor, wrap180 } from './globe-math.mjs';
 import { splashState, veilAlpha, IN_MS, OUT_MS, SKY_VEIL_MS, LEAVE_VEIL_MS } from './timeline.mjs';
 import { sunMagnitude, moonMagnitude, planetMagnitude, saturnRingSinB, AU_KM, NAKED_EYE_LIMIT } from './magnitudes.mjs';
@@ -330,6 +331,29 @@ toggle('tGround', (on) => { ground.visible = on; });
 // ── Textos sobre el cielo (lienzo 2D encima, con la misma proyección) ──
 const ov = $('labels'), octx = ov.getContext('2d');
 let skyAlt = -30;                                   // altura "efectiva" del Sol (incluye el oscurecimiento del eclipse)
+// Etiquetas de las trayectorias: fechas (u horas) a lo largo del trazo y estaciones de retrogradación (℞ al empezar, D al terminar)
+const rgLoc = () => (getLang() === 'es' ? 'es' : 'en-GB');
+function fmtTick(ms, plan, p) {
+  if (plan.unit === 'hour') return fmtHM(ms, obsTz);
+  const f = plan.unit === 'day' ? { day: 'numeric', month: 'short' } : plan.unit === 'month' ? (new Date(ms).getUTCMonth() === 0 ? { month: 'short', year: '2-digit' } : { month: 'short' }) : { year: 'numeric' };
+  return new Intl.DateTimeFormat(rgLoc(), { timeZone: 'UTC', ...f }).format(ms);
+}
+function drawPathLabels(at, atV) {
+  octx.font = `${11 * tsNow()}px Georgia`; octx.textAlign = 'left';
+  for (const p of paths.values()) {
+    if (!p.pts.length || !p.plan) continue;
+    const pos = (q) => (p.long ? (rotDate ? at(q.v, rotDate) : null) : atV(q.v));
+    octx.fillStyle = rgbCss(p.col);
+    for (const k of p.ticks) {
+      const c = pos(p.pts[k.i]); if (!c) continue;
+      octx.globalAlpha = 0.9; octx.beginPath(); octx.arc(c[0], c[1], 2.2, 0, 6.2832); octx.fill();
+      octx.globalAlpha = 0.85; octx.fillText(fmtTick(k.t, p.plan, p), c[0] + 6, c[1] - 6);
+    }
+    octx.fillStyle = rgbCss(p.rcol); octx.globalAlpha = 1;
+    for (const st of p.sts) { const c = pos(p.pts[st.i]); if (!c) continue; octx.fillText(st.kind === 'R' ? '℞' : 'D', c[0] + 6, c[1] + 12); octx.beginPath(); octx.arc(c[0], c[1], 3, 0, 6.2832); octx.stroke(); }
+    octx.globalAlpha = 1;
+  }
+}
 function drawLabels() {
   const w = innerWidth, h = innerHeight; octx.clearRect(0, 0, w, h);
   if (!rotM || !last) return;
@@ -363,6 +387,7 @@ function drawLabels() {
     for (let ra = 0; ra < 360; ra += 30) { const p = at(equatorialVector(ra, 0), rotDate); if (p) octx.fillText(ra / 15 + 'h', p[0], p[1] - 8); }
     for (const dec of [-60, -30, 30, 60]) { const p = at(equatorialVector(0, dec), rotDate); if (p) octx.fillText((dec > 0 ? '+' : '') + dec + '°', p[0] + 14, p[1]); }
   }
+  if (ui.pl && paths.size) drawPathLabels(at, atV);
   // puntos cardinales, Sol, Luna y planetas
   octx.font = `${14 * tsNow()}px Georgia`; octx.fillStyle = '#fff';
   [['N', 0], ['E', 90], ['S', 180], [getLang() === 'es' ? 'O' : 'W', 270]].forEach(([c, az]) => { const p = atV(dirFromAltAz(Math.max(3, skylineAt(land, az) + 1.3), az)); if (p) octx.fillText(c, p[0], p[1]); });
@@ -559,10 +584,11 @@ $('trackStop').onclick = stopTrack;
 // ── Trayectorias: cada objeto activado conserva la suya, con su color (±12 h alrededor del instante actual, un punto cada 10 min) ──
 // Lo ya recorrido se dibuja tenue y lo que viene, más claro. Los cuerpos se consultan a Caelis en tandas; las estrellas se calculan directo.
 const PATH_STEP = 600000, PATH_HALF = 72, PATH_BUCKET = 6 * 3600000;
-// Alcance de la trayectoria de los cuerpos (en Opciones): ±12 h en el cielo del observador, o ±3 / ±6 meses contra las estrellas (se ven los bucles de retrogradación).
-// En los alcances largos se dibuja en coordenadas ecuatoriales de la fecha (fijas respecto de las estrellas), con un punto por día; si no, el giro diario del cielo taparía el bucle.
-const DAY_MS = 86400000, SPANS = [{ long: false }, { long: true, half: 90 }, { long: true, half: 180 }];
-const cfgOf = (p) => (p.long ? { step: DAY_MS, half: SPANS[ui.sp].half, bucket: DAY_MS } : { step: PATH_STEP, half: PATH_HALF, bucket: PATH_BUCKET });
+// Alcance de la trayectoria de cada astro (menú en cascada de Opciones): ±12 h en el cielo del observador, ±3 / ±6 meses contra las estrellas,
+// ciclo sinódico, roseta completa (planetas) o analema (Sol). En los alcances largos se dibuja en coordenadas ecuatoriales de la fecha (fijas respecto de las estrellas).
+// El tramo en retrogradación (ascensión recta decreciente) se dibuja con otro color, derivado del color del astro.
+const rangeOf = (key) => ui.sp[key] || '12h';
+const cfgOf = (p) => p.cf;
 const PATH_COLORS = { Sol: [1, 0.82, 0.24], Luna: [0.86, 0.9, 1], Mercurio: [0.78, 0.72, 0.62], Venus: [1, 0.6, 0.8], Marte: [1, 0.33, 0.25], Jupiter: [1, 0.66, 0.3], Saturno: [0.9, 0.76, 0.36], Urano: [0.43, 0.89, 0.93], Neptuno: [0.38, 0.5, 1] };
 const STAR_PATH = [0.72, 0.82, 1];
 const rgbCss = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
@@ -571,51 +597,63 @@ const pathId = (o) => (o.kind === 'body' ? o.key : 'star:' + o.i);
 const colorOf = (o) => (o.kind === 'body' ? PATH_COLORS[o.key] || [1, 0.82, 0.35] : STAR_PATH);
 const trails = { on: false, mode: 0, mesh: null, key: '', live: null, liveKey: '', t0: 0 };   // trayectorias de todas las estrellas brillantes; mode: 0 apagado, 1 en vivo, 2 ciclo completo
 const trailLabel = () => T(['card.all', 'card.allLive', 'card.allCycle'][trails.mode]);
-function setSegments(mesh, pts) {
-  const a = new Float32Array(Math.max(0, pts.length - 1) * 6);
-  for (let i = 0; i < pts.length - 1; i++) { a.set(pts[i], 6 * i); a.set(pts[i + 1], 6 * i + 3); }
-  mesh.geometry.dispose(); mesh.geometry = new THREE.BufferGeometry(); mesh.geometry.setAttribute('position', new THREE.BufferAttribute(a, 3)); mesh.visible = pts.length > 1;
-}
 function renderPathChip() {
   const chip = $('pathChip'); chip.replaceChildren();
   const pill = (label, col, onRemove) => {
     const e = document.createElement('span'); e.className = 'pp'; e.style.setProperty('--pc', rgbCss(col)); e.append(label + ' ');
     const x = document.createElement('button'); x.textContent = '✕'; x.setAttribute('aria-label', T('chip.removePath', { name: label })); x.onclick = onRemove; e.append(x); chip.append(e);
   };
-  for (const [id, p] of paths) pill(p.obj.kind === 'body' ? bodyName(p.obj.key) : (starNameOf(p.obj.i) || T('chip.star')), p.col, () => { removePath(id); refreshCard(); });
+  for (const [id, p] of paths) pill(p.obj.kind === 'body' ? bodyName(p.obj.key) + (p.range === '12h' ? '' : ' · ' + T('rng.s.' + p.range)) : (starNameOf(p.obj.i) || T('chip.star')), p.col, () => { removePath(id); refreshCard(); });
   if (trails.on) pill(T(trails.mode === 1 ? 'chip.trailsLive' : 'chip.trailsCycle'), STAR_PATH, () => setTrailMode(0));
   chip.hidden = !paths.size && !trails.on;
 }
+const pmeshes = (p) => [p.past, p.fut, p.pastR, p.futR];
 function addPath(o) {
   const id = pathId(o); if (paths.has(id)) return;
-  const col = colorOf(o);
-  const long = o.kind === 'body' && SPANS[ui.sp].long, rot = long ? dateU : idU;
-  paths.set(id, { obj: { kind: o.kind, key: o.key, i: o.i }, col, long, past: makeLines(new Float32Array(6), col, rot, 0.35, 4), fut: makeLines(new Float32Array(6), col, rot, 0.95, 4), key: '', pts: [], splitAt: 0 });
-  for (const m of [paths.get(id).past, paths.get(id).fut]) m.visible = false;
+  const col = colorOf(o), range = o.kind === 'body' ? rangeOf(o.key) : '12h', cf = rangeConfig(o.key, range), long = o.kind === 'body' && cf.long, rot = long ? dateU : idU, rcol = retroColor(col);
+  const mk = (c, al) => makeLines(new Float32Array(6), c, rot, al, 4);
+  const p = { obj: { kind: o.kind, key: o.key, i: o.i }, col, rcol, range, cf, long, anchor: simMs, past: mk(col, 0.35), fut: mk(col, 0.95), pastR: mk(rcol, 0.45), futR: mk(rcol, 1), key: '', pts: [], live: [], splitAt: 0, ticks: [], plan: null, sts: [] };
+  paths.set(id, p); for (const m of pmeshes(p)) m.visible = false;
   renderPathChip();
 }
 function removePath(id) {
   const p = paths.get(id); if (!p) return;
-  for (const m of [p.past, p.fut]) { scene.remove(m); m.geometry.dispose(); m.material.dispose(); }
-  paths.delete(id); renderPathChip();
+  for (const m of pmeshes(p)) { scene.remove(m); m.geometry.dispose(); m.material.dispose(); }
+  paths.delete(id); if (geo.id === id) closeGeo(); renderPathChip();
+}
+function setSeg(mesh, a) {
+  mesh.geometry.dispose(); mesh.geometry = new THREE.BufferGeometry(); mesh.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(a), 3)); mesh.visible = a.length >= 6;
 }
 function splitPath(p) {
-  const past = p.pts.filter((q) => q.t <= simMs).map((q) => q.v), fut = p.pts.filter((q) => q.t >= simMs).map((q) => q.v);
-  if (past.length && fut.length) fut.unshift(past[past.length - 1]);
-  setSegments(p.past, past); setSegments(p.fut, fut); p.splitAt = simMs;
+  const pa = [], pr = [], fa = [], fr = [], pts = p.pts;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const A = pts[i], B = pts[i + 1], past = B.t <= simMs, retro = B.retro || A.retro, dst = past ? (retro ? pr : pa) : (retro ? fr : fa);
+    dst.push(A.v[0], A.v[1], A.v[2], B.v[0], B.v[1], B.v[2]);
+  }
+  setSeg(p.past, pa); setSeg(p.pastR, pr); setSeg(p.fut, fa); setSeg(p.futR, fr); p.splitAt = simMs;
 }
 function computePath(id, p, key, bucket) {
-  const o = p.obj, cf = cfgOf(p), tc = (bucket + 0.5) * cf.bucket, pts = [];
+  const o = p.obj, cf = cfgOf(p), tc = cf.anchored ? p.anchor : (bucket + 0.5) * cf.bucket, pts = [];
+  const finish = () => {
+    const fl = o.kind === 'body' && o.key !== 'Sol' && o.key !== 'Luna' ? retroFlags(pts.map((q) => q.ra)) : pts.map(() => false);
+    pts.forEach((q, i) => { q.retro = fl[i]; });
+    p.sts = stations(fl); p.plan = tickPlan(pts[pts.length - 1].t - pts[0].t);
+    p.ticks = tickTimes(pts[0].t, pts[pts.length - 1].t, p.plan).map((t) => ({ t, i: Math.min(pts.length - 1, Math.max(0, Math.round((t - pts[0].t) / cf.step))) }));
+    p.pts = pts; splitPath(p);
+  };
   if (o.kind === 'star') {
     const e = starVec(o.i);
-    for (let k = -cf.half; k <= cf.half; k++) { const t = tc + k * cf.step; pts.push({ t, v: rotVec(skyRotation(lstNow + (360.98564736629 * (t - simMs)) / 86400000, obs.lat, tNow), e) }); }
-    p.pts = pts; return splitPath(p);
+    for (let k = -cf.half; k <= cf.half; k++) { const t = tc + k * cf.step; pts.push({ t, v: rotVec(skyRotation(lstNow + (360.98564736629 * (t - simMs)) / 86400000, obs.lat, tNow), e), ra: 0 }); }
+    return finish();
   }
-  let k = -cf.half;
+  let k = -cf.half; p.live = pts;
   (function chunk() {
     if (p.key !== key || !paths.has(id)) return;
-    for (let c = 0; c < 12 && k <= cf.half; c++, k++) { const t = tc + k * cf.step, b = snapAt(t).bodies[o.key]; pts.push({ t, v: p.long ? equatorialVector(b.ra_deg, b.dec_deg) : dirFromAltAz(b.alt_apparent_deg, b.az_deg) }); }
-    if (k <= cf.half) setTimeout(chunk, 0); else { p.pts = pts; splitPath(p); }
+    for (let c = 0; c < 24 && k <= cf.half; c++, k++) {
+      const t = tc + k * cf.step, sn = snapAt(t), b = sn.bodies[o.key], su = sn.bodies.Sol;
+      pts.push({ t, v: p.long ? equatorialVector(b.ra_deg, b.dec_deg) : dirFromAltAz(b.alt_apparent_deg, b.az_deg), ra: b.ra_deg, alt: b.alt_apparent_deg, az: b.az_deg, lon: b.lon_ecl_geocentric_deg ?? b.lon_ecl_deg, sunLon: su.lon_ecl_geocentric_deg ?? su.lon_ecl_deg, r: o.key === 'Luna' ? b.dist_km : b.dist_au });
+    }
+    if (k <= cf.half) setTimeout(chunk, 0); else finish();
   })();
 }
 const TRAIL_MAG = 5.0, TRAIL_N = 36, TRAIL_STEP = 1200000;   // estrellas hasta magnitud 5; ±12 h cada 20 min
@@ -639,7 +677,7 @@ function updateTrails(bucket) {
 function updatePaths() {
   if (!last || !rotM) return;
   for (const [id, p] of paths) {
-    const cf = cfgOf(p), bucket = Math.floor(simMs / cf.bucket), key = `${bucket}|${obs.lat}|${obs.lon}|${p.long}`;
+    const cf = cfgOf(p), bucket = Math.floor(simMs / cf.bucket), key = `${bucket}|${obs.lat}|${obs.lon}|${p.range}`;
     if (p.key !== key) { p.key = key; computePath(id, p, key, bucket); }
     else if (Math.abs(simMs - p.splitAt) > cf.step && p.pts.length) splitPath(p);
   }
@@ -678,7 +716,7 @@ function setLiveWindow() {                         // llamado en cada cuadro: la
   trails.live.material.uniforms.uWin.value.set(Math.min(0, now), Math.max(0, now));
 }
 function setTrailMode(m) { trails.mode = m; trails.on = m > 0; trails.key = ''; if (m === 1) { trails.t0 = simMs; trails.liveKey = ''; } if (m === 0 && trails.live) trails.live.visible = false; renderPathChip(); refreshCard(); dirty = true; }
-$('cPath').onclick = () => { if (!sel) return; const id = pathId(sel); if (paths.has(id)) removePath(id); else addPath(sel); refreshCard(); };
+$('cPath').onclick = () => { if (!sel) return; const id = pathId(sel); if (paths.has(id)) removePath(id); else { addPath(sel); if (sel.kind === 'body' && usesModal(rangeOf(sel.key))) openGeo(id); } refreshCard(); };
 $('cAll').onclick = () => setTrailMode((trails.mode + 1) % 3);
 
 function selectionForName(value) {            // lo que se busca por nombre también queda seleccionado (ficha y botón Seguir)
@@ -1116,28 +1154,129 @@ for (const id of ['lat', 'lon']) $(id).onchange = () => {
   dirty = true;
 };
 
+// ── Menú en cascada "Alcance de la trayectoria": cada astro con sus propios alcances ──
+const geo = { id: null, n: 0, stamp: '' };
+const rgSpanText = (b, id) => { const d = cycleDays(b, id); return T('rng.' + id, { d: d && d.toFixed(d < 100 ? 2 : 0).replace(/\.?0+$/, ''), y: d && (d / 365.25).toFixed(1) }); };
+function buildRgMenu() {
+  const list = $('rgList'); list.replaceChildren();
+  for (const b of BODY_ORDER) {
+    const li = document.createElement('li'), bt = document.createElement('button'); bt.type = 'button'; bt.setAttribute('role', 'menuitem');
+    const dot = document.createElement('span'); dot.className = 'pdot'; dot.style.setProperty('--pc', rgbCss(PATH_COLORS[b]));
+    const nm = document.createElement('span'); nm.append(dot, bodyName(b)); bt.append(nm, Object.assign(document.createElement('span'), { textContent: '▸' }));
+    const ul = document.createElement('ul'); ul.setAttribute('role', 'menu');
+    for (const id of rangesFor(b)) {
+      const l2 = document.createElement('li'), r = document.createElement('button'); r.type = 'button'; r.setAttribute('role', 'menuitem'); r.dataset.b = b; r.dataset.r = id; r.textContent = rgSpanText(b, id);
+      if (rangeOf(b) === id) r.className = 'cur'; l2.append(r); ul.append(l2);
+    }
+    li.append(bt, ul);
+    li.addEventListener('mouseenter', () => { for (const o of list.querySelectorAll('li.open')) o.classList.remove('open'); li.classList.add('open'); });
+    li.addEventListener('mouseleave', () => li.classList.remove('open'));
+    bt.addEventListener('click', (ev) => { ev.stopPropagation(); const open = li.classList.contains('open'); for (const o of list.querySelectorAll('li.open')) o.classList.remove('open'); if (!open) li.classList.add('open'); });
+    list.append(li);
+  }
+}
+function setRgOpen(on) {
+  const l = $('rgList'); l.hidden = !on; $('rgBtn').setAttribute('aria-expanded', on);
+  if (on) { const sr = $('side').getBoundingClientRect(), br = $('rgBtn').getBoundingClientRect(); l.style.top = (br.bottom - sr.top + 3) + 'px'; }
+  else for (const o of l.querySelectorAll('li.open')) o.classList.remove('open');
+}
+$('rgBtn').onclick = (e) => { e.stopPropagation(); setRgOpen($('rgList').hidden); };
+$('rgList').addEventListener('click', (e) => {
+  const r = e.target.closest('button[data-r]'); if (!r) return;
+  const b = r.dataset.b, id = r.dataset.r;
+  if (id === '12h') delete ui.sp[b]; else ui.sp[b] = id;
+  saveUi(); const o = { kind: 'body', key: b }, pid = pathId(o);
+  removePath(pid); addPath(o); if (usesModal(id)) openGeo(pid);
+  buildRgMenu(); setRgOpen(false); refreshCard(); dirty = true;
+});
+document.addEventListener('click', (e) => { if (!$('rgMenu').contains(e.target) && !$('rgList').contains(e.target)) setRgOpen(false); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('rgList').hidden) { setRgOpen(false); e.stopImmediatePropagation(); } }, true);
+
+// ── Ventana de geometría: cómo se genera, en vivo, el ciclo / roseta / analema del astro ──
+const geoTitle = () => { const p = paths.get(geo.id); if (p) $('gwTitle').textContent = bodyName(p.obj.key) + ' · ' + T('geo.' + p.range); };
+function openGeo(id) {
+  if (!paths.has(id)) return; geo.id = id; geo.n = 0; geo.stamp = ''; $('geoWin').hidden = false; geoTitle();
+  $('gwNote').textContent = T(paths.get(id).range === 'ana' ? 'geo.noteAna' : id === 'Luna' ? 'geo.noteMoon' : 'geo.noteRot');
+  dirty = true;
+}
+function closeGeo() { geo.id = null; $('geoWin').hidden = true; }
+$('gwClose').onclick = closeGeo;
+$('gwReplay').onclick = () => { geo.n = 0; geo.stamp = ''; };
+function drawGeo() {
+  if (!geo.id) return;
+  const p = paths.get(geo.id); if (!p) return closeGeo();
+  const win = $('geoWin'); if (win.classList.contains('mini')) return;
+  const pts = p.pts.length ? p.pts : p.live, total = 2 * p.cf.half + 1;
+  if (!pts.length) return;
+  geo.n = Math.min(pts.length, geo.n + Math.max(2, total / 240));
+  const stamp = [Math.floor(geo.n), pts.length, Math.round(simMs / 60000), p.range, tsNow(), getLang(), ui.pl, win.clientWidth].join('|');
+  if (stamp === geo.stamp) return; geo.stamp = stamp;
+  const cv = $('gwCanvas'), W = cv.clientWidth || 280, dpr = Math.min(2, devicePixelRatio || 1);
+  if (cv.width !== Math.round(W * dpr)) { cv.width = cv.height = Math.round(W * dpr); } cv.style.height = W + 'px';
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, W);
+  const k = tsNow(), ana = p.range === 'ana', n = Math.floor(geo.n), isMoon = p.obj.key === 'Luna';
+  let xy;
+  if (ana) {
+    const maz = pts.reduce((a, q) => a + q.az, 0) / pts.length, mal = pts.reduce((a, q) => a + q.alt, 0) / pts.length;
+    xy = pts.map((q) => [((q.az - maz + 540) % 360) - 180, q.alt - mal]);
+  } else xy = pts.map((q) => rosettePoint(q.lon, q.r));
+  const ci = Math.min(Math.max(0, Math.round((simMs - pts[0].t) / p.cf.step)), pts.length - 1), sunNow = !ana && !isMoon ? rosettePoint(pts[ci].sunLon, 1) : null;
+  const fit = fitPoints(xy, W, 26 * k, sunNow ? [[1, 0], [-1, 0], [0, 1], [0, -1]] : []);
+  g.lineWidth = 1; g.font = `${10 * k}px Georgia`; g.textBaseline = 'middle';
+  if (!ana) {
+    const [cx, cy] = fit.to([0, 0]);
+    if (sunNow) { g.strokeStyle = 'rgba(255,210,60,.3)'; g.setLineDash([3, 4]); g.beginPath(); g.arc(cx, cy, fit.k, 0, 6.2832); g.stroke(); }
+    g.setLineDash([]); g.strokeStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.moveTo(cx - 5, cy); g.lineTo(cx + 5, cy); g.moveTo(cx, cy - 5); g.lineTo(cx, cy + 5); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.7)'; g.textAlign = 'left'; g.fillText(T('geo.earth'), cx + 8, cy + 10);
+    g.fillStyle = 'rgba(255,255,255,.45)'; g.textAlign = 'right'; g.fillText('γ 0°', W - 5, cy - 8);
+    const sp = sunNow ? fit.to(sunNow) : null;
+    if (sp) { g.fillStyle = '#ffd23c'; g.textAlign = 'center'; g.beginPath(); g.arc(sp[0], sp[1], 4, 0, 6.2832); g.fill(); g.fillText('☉', sp[0], sp[1] - 10 * k); }
+  } else {
+    g.strokeStyle = 'rgba(255,255,255,.15)'; const [cx, cy] = fit.to([0, 0]);
+    g.beginPath(); g.moveTo(0, cy); g.lineTo(W, cy); g.moveTo(cx, 0); g.lineTo(cx, W); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.55)'; g.textAlign = 'right'; g.fillText('az →', W - 6, cy - 8); g.textAlign = 'left'; g.fillText('alt ↑', cx + 6, 10 * k);
+  }
+  const retro = p.rcol && rgbCss(p.rcol), base = rgbCss(p.col);
+  g.lineWidth = 1.6; g.lineJoin = 'round';
+  for (let i = 1; i < n && i < pts.length; i++) {
+    const a = fit.to(xy[i - 1]), b = fit.to(xy[i]); g.strokeStyle = pts[i].retro ? retro : base;
+    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+  }
+  // marca del instante actual (o la punta del trazo mientras se dibuja) y su línea desde la Tierra
+  const hi = Math.min(ci, n - 1);
+  if (hi >= 0) {
+    const c = fit.to(xy[hi]);
+    if (!ana) { const e = fit.to([0, 0]); g.strokeStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.moveTo(e[0], e[1]); g.lineTo(c[0], c[1]); g.stroke(); }
+    g.fillStyle = pts[hi].retro ? retro : base; g.strokeStyle = '#fff'; g.beginPath(); g.arc(c[0], c[1], 4.5, 0, 6.2832); g.fill(); g.stroke();
+  }
+  if (ui.pl && p.plan && p.pts.length) {
+    g.textAlign = 'left'; g.fillStyle = 'rgba(235,235,245,.8)';
+    for (const tk of p.ticks) if (tk.i < n) { const c = fit.to(xy[tk.i]); g.beginPath(); g.arc(c[0], c[1], 1.8, 0, 6.2832); g.fill(); const right = c[0] > W - 48 * k; g.textAlign = right ? 'right' : 'left'; g.fillText(fmtTick(tk.t, p.plan, p), c[0] + (right ? -4 : 4), c[1] - 5); }
+    g.fillStyle = retro; for (const st of p.sts) if (st.i < n) { const c = fit.to(xy[st.i]); g.fillText(st.kind === 'R' ? '℞' : 'D', c[0] + 5, c[1] + 9); }
+  }
+  const done = p.pts.length && n >= pts.length, cd = cycleDays(p.obj.key, p.range);
+  const span = cd >= 1000 ? (cd / 365.25).toFixed(1) + (getLang() === 'es' ? ' años' : ' years') : Math.round(cd) + (getLang() === 'es' ? ' días' : ' days');
+  $('gwStat').textContent = done ? T('geo.done', { span }) : T('geo.drawing', { n: Math.min(99, Math.floor((100 * n) / total)) });
+}
+
 // ── Idioma: inglés por defecto; el botón EN / ES cambia la interfaz, los nombres de los astros y las constelaciones ──
 function applyUi() {
   const r = document.documentElement.style;
   r.setProperty('--ts', tsNow()); r.setProperty('--op', ui.op);
   for (const b of document.querySelectorAll('.txtsw')) b.querySelectorAll('span').forEach((sp, i) => sp.classList.toggle('on', i === ui.ts));
   $('panelOp').value = Math.round(ui.op * 100);
-  $('pathSpan').value = ui.sp; $('tJson').setAttribute('aria-pressed', ui.js); if (!ui.js) jsonOpen = false;
+  $('tPL').setAttribute('aria-pressed', ui.pl); $('tJson').setAttribute('aria-pressed', ui.js); if (!ui.js) jsonOpen = false;
   document.body.classList.toggle('night', ui.nm); $('tNight').setAttribute('aria-pressed', ui.nm);
   fitKey = ''; dirty = true;
 }
 for (const b of document.querySelectorAll('.txtsw')) b.onclick = () => { ui.ts = nextTextStep(ui.ts); saveUi(); applyUi(); };
 const toggleNight = () => { ui.nm = !ui.nm; saveUi(); applyUi(); };
 $('tNight').onclick = toggleNight;
-$('pathSpan').onchange = (e) => {
-  ui.sp = +e.target.value; saveUi();
-  const objs = [...paths.values()].map((p) => p.obj); for (const id of [...paths.keys()]) removePath(id);
-  for (const o of objs) addPath(o); refreshCard(); dirty = true;
-};
+$('tPL').onclick = () => { ui.pl = !ui.pl; saveUi(); applyUi(); };
 $('tJson').onclick = () => { ui.js = !ui.js; saveUi(); applyUi(); refreshCard(); };
 $('panelOp').oninput = (e) => { ui.op = clampOpacity(+e.target.value / 100); saveUi(); applyUi(); };
 function applyLang() {
-  applyStatic(); rebuildObjList(); buildEvMenu(); relabelDrums(); setSpeed(speed); setDanjonLbl(); renderGDetail();
+  applyStatic(); rebuildObjList(); buildEvMenu(); relabelDrums(); setSpeed(speed); setDanjonLbl(); renderGDetail(); buildRgMenu(); if (geo.id) { geo.stamp = ''; geoTitle(); }
   for (const f of minApply) f();
   for (const b of document.querySelectorAll('[data-lang]')) b.setAttribute('aria-pressed', b.dataset.lang === getLang());
   frame.gt = ''; fitKey = ''; renderPathChip(); updateTrackUI(); refreshCard(); dirty = true;
@@ -1254,7 +1393,7 @@ function frame(t) {
     setProjection();
     orient();
     renderer.render(scene, camera);
-    drawLabels();
+    drawLabels(); drawGeo();
   } else {
     if (last) { const S = last.Sol; globe.setSun(S.dec_deg, wrap180(S.ra_deg - (lstNow - obs.lon))); globe.setSidereal(lstNow - obs.lon); }
     globe.render(Math.min(dt, 0.1));

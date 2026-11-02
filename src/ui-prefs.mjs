@@ -1,4 +1,5 @@
 // Preferencias de accesibilidad de la interfaz: tamaño del texto (3 pasos) y opacidad de los paneles. Funciones puras, con prueba.
+import { parseRanges } from './trajectory.mjs';
 export const TEXT_STEPS = [1, 1.2, 1.4];        // 0 = tamaño original; los otros agrandan todo el texto en proporción
 export const OPACITY_MIN = 0.2, OPACITY_MAX = 1;
 export const nextTextStep = (i) => (i + 1) % TEXT_STEPS.length;
@@ -6,6 +7,6 @@ export const clampOpacity = (v) => { const x = Number(v); return Number.isFinite
 export function parsePrefs(raw) {
   try {
     const o = JSON.parse(raw || 'null') || {};
-    return { sp: o.sp === 1 || o.sp === 2 ? o.sp : 0, js: o.js === true, nm: o.nm === true, ts: Number.isInteger(o.ts) && o.ts >= 0 && o.ts < TEXT_STEPS.length ? o.ts : 0, op: o.op === undefined ? OPACITY_MAX : clampOpacity(o.op) };
-  } catch { return { sp: 0, js: false, nm: false, ts: 0, op: OPACITY_MAX }; }
+    return { sp: parseRanges(o.sp), pl: o.pl !== false, js: o.js === true, nm: o.nm === true, ts: Number.isInteger(o.ts) && o.ts >= 0 && o.ts < TEXT_STEPS.length ? o.ts : 0, op: o.op === undefined ? OPACITY_MAX : clampOpacity(o.op) };
+  } catch { return { sp: {}, pl: true, js: false, nm: false, ts: 0, op: OPACITY_MAX }; }
 }
