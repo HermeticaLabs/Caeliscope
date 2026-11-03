@@ -16,6 +16,8 @@ import { buildLandscape, skylineAt, LAND_W } from './landscape.mjs';
 import { tzAt, toInputValue, fromInputValue, dayIndex, fmtOffset, zoneName, fmtClock, fmtHM, fmtDateTime, partsAt, wallToMs, stepWall } from './timezone.mjs';
 import { Globe } from './globe.mjs';
 import { createLru } from './lru.mjs';
+import { moonsOnSky } from './satellites/sky.mjs';
+import { SAT_PLUGINS, pluginFor, moonName } from './satellites/index.mjs';
 import { CENTER, PRESETS, project as proj3, orbit, zoomBy, autoZ, extent } from './view3d.mjs';
 import { slideTo, findFree } from './winpos.mjs';
 import { solarShadow, lunarShadow, shadowMode } from './shadow.mjs';
@@ -325,6 +327,7 @@ let gridEcl = null, showAzL = false, showEqL = false, showEcl = false, rotDate =
 const toggle = (id, set) => { const b = $(id); b.onclick = () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); set(on); dirty = true; }; };
 toggle('tConst', (on) => { showConst = on; if (lineMesh) lineMesh.visible = on; });
 toggle('tNames', (on) => { showNames = on; });
+const moonsFor = (planet) => { const pl = pluginFor(planet); return pl && lastSnap ? { pl, list: moonsOnSky(pl, last[planet], last.Sol, lastSnap.meta.jd_tt) } : null; };
 toggle('tAz', (on) => { gridAz.visible = showAzL = on; });
 toggle('tEq', (on) => { gridEq.visible = showEqL = on; });
 toggle('tEcl', (on) => { showEcl = on; if (gridEcl) gridEcl.visible = on; });
@@ -356,6 +359,33 @@ function drawPathLabels(at, atV) {
     octx.fillStyle = rgbCss(p.rcol); octx.globalAlpha = 1;
     for (const st of p.sts) { const c = pos(p.pts[st.i]); if (!c) continue; octx.fillText(st.kind === 'R' ? '℞' : 'D', c[0] + 6, c[1] + 12); octx.beginPath(); octx.arc(c[0], c[1], 3, 0, 6.2832); octx.stroke(); }
     octx.globalAlpha = 1;
+  }
+}
+// Satélites naturales (plugins): se dibujan alrededor de su planeta cuando el zoom los separa; nunca entran en estelas, geometrías ni rosetas.
+function drawMoons(atV) {
+  for (const pl of SAT_PLUGINS) {
+    const b = last[pl.planet]; if (!b || (bodyPx[pl.planet] || 0) < 4) continue;
+    const m = moonsFor(pl.planet); if (!m) continue;
+    const vM = dirFromAltAz(b.alt_apparent_deg, b.az_deg), E0 = equatorialVector(b.ra_deg, b.dec_deg), a = b.ra_deg * D2R, d = b.dec_deg * D2R, R0 = rotVec(rotM, E0);
+    const east = [-Math.sin(a), Math.cos(a), 0], north = [-Math.cos(a) * Math.sin(d), -Math.sin(a) * Math.sin(d), Math.cos(d)];
+    octx.font = `${11 * tsNow()}px Georgia`; octx.textAlign = 'left';
+    const at2 = (dx, dy) => {                                                           // desplazamiento angular (″ este, ″ norte) respecto del centro del planeta -> pantalla
+      const ex = dx / 206264.806, ey = dy / 206264.806, E1 = [0, 1, 2].map((i) => E0[i] + ex * east[i] + ey * north[i]), R1 = rotVec(rotM, E1);
+      const v = [vM[0] + R1[0] - R0[0], vM[1] + R1[1] - R0[1], vM[2] + R1[2] - R0[2]], n = Math.hypot(...v); return atV([v[0] / n, v[1] / n, v[2] / n]);
+    };
+    const rpx = (def) => Math.max(2.4, (def.meanRadiusKm / pl.radiusKm) * (bodyPx[pl.planet] || 0));   // radio real de la luna en pantalla (mínimo un punto)
+    for (const s of m.list) {                                                           // sombras de las lunas sobre el disco del planeta
+      if (!s.shadow || s.occulted) continue;
+      const def = pl.moons.find((q) => q.key === s.key), c = at2(s.shadow.dxArcsec, s.shadow.dyArcsec); if (!c) continue;
+      octx.fillStyle = 'rgba(0,0,0,.78)'; octx.beginPath(); octx.arc(c[0], c[1], Math.max(1.5, rpx(def) * 0.95), 0, 6.2832); octx.fill();
+    }
+    for (const s of m.list) {
+      if (s.occulted) continue;
+      const def = pl.moons.find((q) => q.key === s.key), c = at2(s.dxArcsec, s.dyArcsec); if (!c) continue; const r = rpx(def);
+      octx.fillStyle = s.eclipsed ? 'rgba(150,70,50,.9)' : s.transit ? 'rgba(60,58,62,.92)' : (def.color || '#e1e1d7');
+      octx.beginPath(); octx.arc(c[0], c[1], r, 0, 6.2832); octx.fill(); octx.strokeStyle = 'rgba(0,0,0,.6)'; octx.lineWidth = 1; octx.stroke();
+      if (showNames || (bodyPx[pl.planet] || 0) >= 10) { octx.fillStyle = 'rgba(205,200,255,.9)'; octx.fillText(moonName(def, getLang()), c[0] + r + 5, c[1] - 6); }
+    }
   }
 }
 function drawLabels() {
@@ -405,6 +435,7 @@ function drawLabels() {
   if (!(eclNow.dark > 0.5)) { tag('Sol', bodyName('Sol'), '#dcb450', -26); }
   tag('Luna', bodyName('Luna'), '#dcb450', 26);
   for (const n of PNAMES) if ((magsVis[n] ?? 0) < lim + 0.4 || (bodyPx[n] || 0) > 4) tag(n, bodyName(n), '#b4a5ff', 16);
+  if (ui.mn) drawMoons(atV);
   const sp = sel && selScreen();
   if (sp) { // mira discreta: cuatro cuadritos (arriba, abajo, izquierda, derecha) alrededor del objeto
     const R = sel.kind === 'body' ? Math.max(14, (bodyPx[sel.key] || 0) + 8) : 14, q = 5; octx.strokeStyle = 'rgba(255,255,255,0.85)'; octx.lineWidth = 1;
@@ -506,6 +537,8 @@ function describe() {
     }
     if (mags[sel.key] > NAKED_EYE_LIMIT) rows.push([T('row.obs'), T('row.needsScope')]);
     rows.push([T('row.state'), T(b.alt_apparent_deg >= 0 ? 'row.up' : 'row.down')]);
+    const ms = ui.mn ? moonsFor(sel.key) : null;
+    if (ms) for (const s of ms.list) rows.push([moonName(ms.pl.moons.find((q) => q.key === s.key), getLang()), `${s.sepArcsec.toFixed(1)}″ ${T(s.dxArcsec >= 0 ? 'sat.east' : 'sat.west')} · ${T(s.occulted ? 'sat.occulted' : s.transit ? 'sat.transit' : s.eclipsed ? 'sat.eclipsed' : 'sat.visible')}${s.shadow && !s.occulted ? ' · ' + T('sat.shadow') : ''}`]);
   } else {
     const s = starCat[sel.i], e = starVec(sel.i), name = starNameOf(sel.i);
     const info = starInfo && starInfo[sel.i], hip = info && info[1];
@@ -530,7 +563,7 @@ let jsonOpen = false, jsonText = '', jsonObj = null;
 function currentExport() {
   if (!sel || !lastSnap || !rotM) return null;
   const observer = { lat: obs.lat, lon: obs.lon };
-  if (sel.kind === 'body') return buildExport({ kind: 'body', key: sel.key, name: bodyName(sel.key, 'en'), data: lastSnap.bodies[sel.key], snap: lastSnap, observer, extra: sel.key === 'Luna' ? lastSnap.luna : undefined });
+  if (sel.kind === 'body') return buildExport({ kind: 'body', key: sel.key, name: bodyName(sel.key, 'en'), data: lastSnap.bodies[sel.key], snap: lastSnap, observer, extra: sel.key === 'Luna' ? lastSnap.luna : (() => { const ms = ui.mn ? moonsFor(sel.key) : null; return ms ? { satellites: { plugin: ms.pl.id, model: ms.pl.model, moons: ms.list.map((s) => ({ key: s.key, east_arcsec: +s.dxArcsec.toFixed(3), north_arcsec: +s.dyArcsec.toFixed(3), separation_arcsec: +s.sepArcsec.toFixed(3), line_of_sight_km: Math.round(s.zKm), transit: s.transit, occulted: s.occulted, in_planet_shadow: s.eclipsed, shadow_on_disc: !!s.shadow })) } } : undefined; })() });
   const s = starCat[sel.i], info = starInfo && starInfo[sel.i], h = horizontalOf(rotM, starVec(sel.i));
   return buildExport({ kind: 'star', key: 'star:' + sel.i, name: starName(starNameOf(sel.i), 'en') || (info && info[1] ? `HIP ${info[1]}` : `star ${sel.i}`), snap: lastSnap, observer,
     data: { ra_j2000_deg: s[0], dec_j2000_deg: s[1], magnitude: s[2], bv_index: s[3], hip: info ? info[1] : null, az_deg: h.az, alt_geometric_deg: h.alt, lst_deg: lastSnap.meta.sidereal.lst_deg } });
@@ -1410,13 +1443,14 @@ function applyUi() {
   r.setProperty('--ts', tsNow()); r.setProperty('--op', ui.op);
   for (const b of document.querySelectorAll('.txtsw')) b.querySelectorAll('span').forEach((sp, i) => sp.classList.toggle('on', i === ui.ts));
   $('panelOp').value = Math.round(ui.op * 100);
-  $('tPL').setAttribute('aria-pressed', ui.pl); $('tJson').setAttribute('aria-pressed', ui.js); if (!ui.js) jsonOpen = false;
+  $('tPL').setAttribute('aria-pressed', ui.pl); $('tMoons').setAttribute('aria-pressed', ui.mn); $('tJson').setAttribute('aria-pressed', ui.js); if (!ui.js) jsonOpen = false;
   document.body.classList.toggle('night', ui.nm); $('tNight').setAttribute('aria-pressed', ui.nm);
   fitKey = ''; dirty = true;
 }
 for (const b of document.querySelectorAll('.txtsw')) b.onclick = () => { ui.ts = nextTextStep(ui.ts); saveUi(); applyUi(); };
 const toggleNight = () => { ui.nm = !ui.nm; saveUi(); applyUi(); };
 $('tNight').onclick = toggleNight;
+$('tMoons').onclick = () => { ui.mn = !ui.mn; saveUi(); applyUi(); refreshCard(); };
 $('tPL').onclick = () => { ui.pl = !ui.pl; saveUi(); applyUi(); };
 $('tJson').onclick = () => { ui.js = !ui.js; saveUi(); applyUi(); refreshCard(); };
 $('panelOp').oninput = (e) => { ui.op = clampOpacity(+e.target.value / 100); saveUi(); applyUi(); };
