@@ -10,15 +10,15 @@ export function solveKepler(M, e) {
   return E;
 }
 
-// el: { a (km), e, w, M, i, node (grados, a la época), P (días), Papsis (años, 0 = sin precesión), Pnode (años; el nodo regresa), pole: [ra, dec] del plano de Laplace }
-// La anomalía media avanza con P; el nodo retrocede con Pnode y el periapsis avanza con Papsis (precesión secular media).
+// el: { a (km), e, w, M, i, node (grados, a la época J2000), nSid (°/día, movimiento medio sideral), apsisDir (+1 / −1: sentido de la precesión del periapsis), Papsis (años, 0 = sin precesión),
+//       Pnode (años; el nodo siempre retrocede), pole: [ra, dec] del plano de Laplace }.
+// Se propaga la longitud media λ = M + ω + Ω con el movimiento medio sideral (es lo que mantiene bien la fase y las resonancias, p. ej. la de Laplace de Ío–Europa–Ganímedes);
+// el nodo y el periapsis precesan con sus períodos y la anomalía media sale de M = λ − ω − Ω.
 export function elementsAt(el, jd) {
   const dt = jd - JD_J2000;
-  return {
-    M: wrap(el.M + (360 / el.P) * dt),
-    w: wrap(el.w + (el.Papsis ? (360 / (el.Papsis * YEAR)) * dt : 0)),
-    node: wrap(el.node - (el.Pnode ? (360 / (el.Pnode * YEAR)) * dt : 0)),
-  };
+  const w = wrap(el.w + (el.Papsis ? (el.apsisDir ?? 1) * (360 / (el.Papsis * YEAR)) * dt : 0)), node = wrap(el.node - (el.Pnode ? (360 / (el.Pnode * YEAR)) * dt : 0));
+  const lambda = el.M + el.w + el.node + el.nSid * dt;
+  return { M: wrap(lambda - w - node), w, node, lambda: wrap(lambda) };
 }
 
 export function moonPositionKm(el, jd) {

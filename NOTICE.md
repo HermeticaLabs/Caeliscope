@@ -11,7 +11,7 @@ Caeliscope's own code is AGPL-3.0-or-later (see `LICENSE`). It uses the followin
 | Earth textures (`public/earth`) | Day: NASA Earth Observatory, Blue Marble Next Generation with topography, August 2004 (`world.topo.200408.3x21600x10800.jpg`, by Reto Stockli). Night: NASA Earth Observatory, Black Marble 2016 (`BlackMarble_2016_3km.jpg`, Suomi NPP VIIRS data). Clouds: derived from NASA/GSFC SVS #3615. All resampled by Hermetica Labs | NASA media usage guidelines (credit requested) |
 | Surface detail tiles | NASA GIBS, Blue Marble, downloaded live | NASA open data |
 | Planet and Sun textures (`public/planets`) | Copyright (c) 2010-2017, Solar System Scope (solarsystemscope.com/textures), resized to JPEG | CC BY 4.0, attribution required |
-| Satellite orbital elements (`src/satellites/mars.mjs`) | NASA/JPL Solar System Dynamics, Planetary Satellite Mean Elements (Mars: Phobos, Deimos, epoch J2000, local Laplace planes) | NASA public data; elements are mean values, not an ephemeris |
+| Satellite orbital elements (`src/satellites/mars.mjs`, `jupiter.mjs`) | NASA/JPL Solar System Dynamics, Planetary Satellite Mean Elements (Mars: Phobos, Deimos; Jupiter: Io, Europa, Ganymede, Callisto; epoch J2000, local Laplace planes) | NASA public data; elements are mean values, not an ephemeris |
 | Time zones by coordinates | tz-lookup (library) | CC0 1.0 |
 | Time zone boundary data inside tz-lookup | timezone-boundary-builder, from OpenStreetMap | ODbL 1.0, © OpenStreetMap contributors |
 | Fonts | Jost, Cormorant via @fontsource-variable | SIL OFL 1.1 |

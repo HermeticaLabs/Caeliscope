@@ -29,6 +29,8 @@ Viaja desde el espacio hasta cualquier punto de la Tierra y mira hacia arriba: S
 | La roseta de Venus (8 años, 5 ciclos sinódicos); los tramos retrógrados usan su propio color | El mismo ciclo como objeto 3D: gira en X / Y / Z, acerca, y **Centrar** lo restaura |
 | ![El analema del Sol, con etiquetas mensuales](docs/img/sun-analemma.jpg) | ![Guía de sombra de un eclipse solar junto al ciclo de Saros de la Luna](docs/img/shadow-guide-saros.jpg) |
 | El analema del Sol: su posición a la misma hora del reloj cada día durante un año | Guía de sombra (umbra, penumbra, fechas de Saros) junto al ciclo de Saros de la Luna |
+| ![Marte cerca de la oposición con Fobos a su lado](docs/img/mars-phobos.jpg) | ![El disco achatado de Júpiter con Ío en tránsito y dos sombras de lunas sobre las nubes](docs/img/jupiter-moons.jpg) |
+| Marte cerca de la oposición con Fobos (plugin de lunas) | Júpiter: Ío en tránsito, las sombras de Ío y Ganímedes sobre el disco, Europa dentro de la sombra de Júpiter |
 
 ## Funciones
 
@@ -38,13 +40,13 @@ Viaja desde el espacio hasta cualquier punto de la Tierra y mira hacia arriba: S
 - **Trayectorias por astro**: elige el Sol, la Luna o cualquiera de los 7 planetas y un alcance (±12 h, ±3 / ±6 meses, ciclo sinódico, roseta completa). Los tramos retrógrados tienen su propio color, se pueden etiquetar fechas y estaciones (℞ / D), el Sol tiene su **analema** y la Luna su **ciclo de Saros** (223 lunaciones).
 - **Ventana de geometría**: el ciclo sinódico, la roseta, el analema y el Saros abren una ventana minimizable que dibuja la geometría en vivo (por ejemplo la roseta de 5 pétalos de Venus). Se puede pasar a una **vista 3D** interactiva del ciclo completo: girar en X / Y / Z, acercar, vistas fijas (arriba, frente, lado) y un botón **Centrar**. La ventana se arrastra desde su barra de título y nunca se superpone con otro panel.
 - **Guía de sombra**: los conos de sombra de un eclipse solar (umbra, penumbra y antumbra de la Luna, en vista lateral y en el plano a escala que pasa por el centro de la Tierra) o de un eclipse lunar (la Luna frente a la umbra y la penumbra de la Tierra), con las fechas de Saros en que el mismo eclipse se repite.
-- **Lunas (plugins)**: Fobos y Deimos aparecen alrededor de Marte al acercarte, con tránsito, ocultación tras el planeta y eclipse en su sombra; la ficha de Marte lista su separación. Nunca aparecen en estelas, geometrías ni rosetas. Se activan con **Lunas**.
+- **Lunas (plugins)**: Fobos y Deimos alrededor de Marte, y las cuatro lunas galileanas alrededor de Júpiter (planeta achatado), aparecen al acercarte, con tránsito, ocultación tras el planeta, eclipse en su sombra y la **sombra de cada luna sobre el disco del planeta**; la ficha del planeta lista su separación y estado. Nunca aparecen en estelas, geometrías ni rosetas. Se activan con **Lunas**.
 - **Vista JSON en vivo**: da vuelta la ficha de cualquier objeto para ver el snapshot exacto de Caelis Engine que hay detrás; cópialo o descárgalo con sus metadatos.
 - **Accesibilidad y comodidad**: español / inglés, tres tamaños de texto, opacidad ajustable de los paneles, **modo nocturno** rojo (`N`), paneles minimizables y atajos de teclado.
 
 ## Hoja de ruta
 
-El motor queda congelado por ahora. Los satélites naturales se incorporan uno por uno como **plugins** de Caeliscope (`src/satellites/`), trabajando sobre las posiciones que el motor ya resuelve para el centro de cada planeta. **Marte (Fobos y Deimos) ya está**, con elementos medios de JPL y precesión secular; siguen Júpiter (galileanos, Sampson–Lieske), Saturno (TASS 1.6/1.7) y Urano (GUST). Las lunas se dibujan en el cielo y en las vistas de planeta, nunca en estelas, geometrías ni rosetas, y buscan ser matemáticamente coherentes (forma, tránsito y física respecto de su planeta) más que extremadamente precisos.
+El motor queda congelado por ahora. Los satélites naturales se incorporan uno por uno como **plugins** de Caeliscope (`src/satellites/`), trabajando sobre las posiciones que el motor ya resuelve para el centro de cada planeta. **Marte (Fobos, Deimos) y Júpiter (Ío, Europa, Ganímedes, Calisto) ya están**, con elementos medios de JPL y precesión secular (los galileanos conservan la resonancia de Laplace); siguen Saturno (TASS 1.6/1.7) y Urano (GUST). Las lunas se dibujan en el cielo y en las vistas de planeta, nunca en estelas, geometrías ni rosetas, y buscan ser matemáticamente coherentes (forma, tránsito y física respecto de su planeta) más que extremadamente precisos.
 
 ## Por qué existe
 
@@ -83,7 +85,7 @@ Otros comandos: `npm run build` (paquete de producción en `dist/`), `npm run pr
 | `src/eclipse.mjs`, `src/magnitudes.mjs`, `src/events.mjs` | Eclipses, magnitudes aparentes, buscador de eventos |
 | `src/trajectory.mjs` | Alcances de trayectoria, ciclos sinódico y de Saros, rosetas, detección de retrogradación, etiquetas de fecha |
 | `src/shadow.mjs` | Geometría de umbra / penumbra / antumbra de eclipses solares y lunares |
-| `src/satellites/` | Plugins de satélites: órbitas keplerianas con elementos del plano de Laplace, posiciones en el cielo, tránsito / ocultación / eclipse; plugin de Marte |
+| `src/satellites/` | Plugins de satélites: órbitas keplerianas con elementos del plano de Laplace, posiciones en el cielo, tránsito / ocultación / eclipse; plugins de Marte y Júpiter |
 | `src/view3d.mjs`, `src/winpos.mjs`, `src/lru.mjs` | Matemática de la vista 3D, ventanas flotantes sin superposición, caché acotada (últimas 5 geometrías) |
 | `src/globe.mjs`, `src/globe-math.mjs`, `src/tiles*.mjs` | Globo terrestre, viaje hasta el suelo, teselas NASA GIBS |
 | `src/timeline.mjs`, `src/timezone.mjs` | Línea de tiempo de la portada, zonas horarias locales reales |
