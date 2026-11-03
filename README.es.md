@@ -25,15 +25,25 @@ Viaja desde el espacio hasta cualquier punto de la Tierra y mira hacia arriba: S
 | Cielo nocturno con la Vía Láctea y la ficha de datos de la Luna | Eclipse solar total: corona y cielo oscurecido |
 | ![Eclipse lunar parcial siguiendo la trayectoria de la Luna](docs/img/lunar-eclipse.jpg) | ![Constelaciones, nombres y la trayectoria de Betelgeuse](docs/img/constellations.jpg) |
 | Eclipse lunar, siguiendo a la Luna por su trayectoria | Constelaciones, grilla ecuatorial y la trayectoria de una estrella |
+| ![La roseta de cinco pétalos de Venus dibujada en vivo en su ventana de geometría](docs/img/venus-rosette.jpg) | ![La misma roseta como objeto 3D interactivo](docs/img/venus-rosette-3d.jpg) |
+| La roseta de Venus (8 años, 5 ciclos sinódicos); los tramos retrógrados usan su propio color | El mismo ciclo como objeto 3D: gira en X / Y / Z, acerca, y **Centrar** lo restaura |
+| ![El analema del Sol, con etiquetas mensuales](docs/img/sun-analemma.jpg) | ![Guía de sombra de un eclipse solar junto al ciclo de Saros de la Luna](docs/img/shadow-guide-saros.jpg) |
+| El analema del Sol: su posición a la misma hora del reloj cada día durante un año | Guía de sombra (umbra, penumbra, fechas de Saros) junto al ciclo de Saros de la Luna |
 
 ## Funciones
 
 - **Viaje del globo al cielo** sobre imágenes NASA GIBS, y luego el cielo de ese lugar exacto, con las zonas horarias locales reales.
 - **Viaje en el tiempo**: ruedas de fecha y hora, calendario con botón «Ir», velocidades desde tiempo real hasta minutos por segundo y la franja del día.
 - **Buscador de eclipses y eventos**: próximo o anterior eclipse solar (total, anular, parcial) o lunar **visible desde tu ubicación**, además de equinoccios, solsticios y fases lunares.
-- **Trayectorias por astro**: elige el Sol, la Luna o cualquiera de los 7 planetas y un alcance (±12 h, ±3 / ±6 meses, ciclo sinódico, roseta completa). Los tramos retrógrados tienen su propio color, se pueden etiquetar fechas y estaciones (℞ / D), el Sol tiene su **analema** y una ventana minimizable dibuja la geometría en vivo (por ejemplo la roseta de 5 pétalos de Venus).
+- **Trayectorias por astro**: elige el Sol, la Luna o cualquiera de los 7 planetas y un alcance (±12 h, ±3 / ±6 meses, ciclo sinódico, roseta completa). Los tramos retrógrados tienen su propio color, se pueden etiquetar fechas y estaciones (℞ / D), el Sol tiene su **analema** y la Luna su **ciclo de Saros** (223 lunaciones).
+- **Ventana de geometría**: el ciclo sinódico, la roseta, el analema y el Saros abren una ventana minimizable que dibuja la geometría en vivo (por ejemplo la roseta de 5 pétalos de Venus). Se puede pasar a una **vista 3D** interactiva del ciclo completo: girar en X / Y / Z, acercar, vistas fijas (arriba, frente, lado) y un botón **Centrar**. La ventana se arrastra desde su barra de título y nunca se superpone con otro panel.
+- **Guía de sombra**: los conos de sombra de un eclipse solar (umbra, penumbra y antumbra de la Luna, en vista lateral y en el plano a escala que pasa por el centro de la Tierra) o de un eclipse lunar (la Luna frente a la umbra y la penumbra de la Tierra), con las fechas de Saros en que el mismo eclipse se repite.
 - **Vista JSON en vivo**: da vuelta la ficha de cualquier objeto para ver el snapshot exacto de Caelis Engine que hay detrás; cópialo o descárgalo con sus metadatos.
 - **Accesibilidad y comodidad**: español / inglés, tres tamaños de texto, opacidad ajustable de los paneles, **modo nocturno** rojo (`N`), paneles minimizables y atajos de teclado.
+
+## Hoja de ruta
+
+El motor queda congelado por ahora. A continuación se incorporarán los satélites naturales uno por uno como **plugins** de Caeliscope, trabajando sobre las posiciones que el motor ya resuelve para el centro de cada planeta: Marte (Fobos, Deimos, al estilo MARS97), Júpiter (galileanos, Sampson–Lieske), Saturno (TASS 1.6/1.7) y Urano (GUST). Se dibujarán en el cielo y en las vistas de planeta, nunca en estelas, geometrías ni rosetas, y buscan ser matemáticamente coherentes (forma, tránsito y física respecto de su planeta) más que extremadamente precisos.
 
 ## Por qué existe
 
@@ -70,7 +80,9 @@ Otros comandos: `npm run build` (paquete de producción en `dist/`), `npm run pr
 | `src/main.mjs` | Aplicación: máquina de estados, interfaz, una consulta al motor por actualización |
 | `src/sky-math.mjs`, `src/projection.mjs`, `src/stars.mjs` | Matemática pura: marco del observador, proyecciones, giro de las estrellas |
 | `src/eclipse.mjs`, `src/magnitudes.mjs`, `src/events.mjs` | Eclipses, magnitudes aparentes, buscador de eventos |
-| `src/trajectory.mjs` | Alcances de trayectoria, ciclos sinódicos, rosetas, detección de retrogradación, etiquetas de fecha |
+| `src/trajectory.mjs` | Alcances de trayectoria, ciclos sinódico y de Saros, rosetas, detección de retrogradación, etiquetas de fecha |
+| `src/shadow.mjs` | Geometría de umbra / penumbra / antumbra de eclipses solares y lunares |
+| `src/view3d.mjs`, `src/winpos.mjs`, `src/lru.mjs` | Matemática de la vista 3D, ventanas flotantes sin superposición, caché acotada (últimas 5 geometrías) |
 | `src/globe.mjs`, `src/globe-math.mjs`, `src/tiles*.mjs` | Globo terrestre, viaje hasta el suelo, teselas NASA GIBS |
 | `src/timeline.mjs`, `src/timezone.mjs` | Línea de tiempo de la portada, zonas horarias locales reales |
 | `src/i18n.mjs`, `src/ui-prefs.mjs`, `src/snapshot-json.mjs` | Textos en español / inglés, preferencias de accesibilidad, exportación JSON |

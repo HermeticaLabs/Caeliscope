@@ -1,6 +1,6 @@
 {
   "name": "caeliscope",
-  "version": "0.1.0",
+  "version": "1.41.0",
   "type": "commonjs",
   "scripts": {
     "dev": "vite",
@@ -21,13 +21,13 @@
   "description": "Caeliscope: an immersive sky viewer and technical demo built on Caelis Engine.",
   "license": "AGPL-3.0-or-later",
   "author": "Hermetica Labs",
-  "homepage": "https://hermeticalabs.github.io/Caeliscope/",
+  "homepage": "https://github.com/hermeticalabs/caeliscope",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HermeticaLabs/Caeliscope.git"
+    "url": "git+https://github.com/hermeticalabs/caeliscope.git"
   },
   "bugs": {
-    "url": "https://github.com/HermeticaLabs/Caeliscope/issues"
+    "url": "https://github.com/hermeticalabs/caeliscope/issues"
   },
   "keywords": [
     "astronomy",
