@@ -12,10 +12,10 @@ test('la opacidad se limita entre 20% y 100%', () => {
 });
 test('modo nocturno: solo se activa con true', () => { assert.equal(parsePrefs('{"nm":true}').nm, true); assert.equal(parsePrefs('{"nm":1}').nm, false); });
 test('preferencias guardadas: valores válidos se respetan y lo corrupto vuelve al valor por defecto', () => {
-  assert.deepEqual(parsePrefs('{"ts":2,"op":0.4}'), { sp: {}, pl: true, js: false, nm: false, ts: 2, op: 0.4 });
-  assert.deepEqual(parsePrefs(null), { sp: {}, pl: true, js: false, nm: false, ts: 0, op: 1 });
-  assert.deepEqual(parsePrefs('no es json'), { sp: {}, pl: true, js: false, nm: false, ts: 0, op: 1 });
-  assert.deepEqual(parsePrefs('{"ts":9,"op":-3}'), { sp: {}, pl: true, js: false, nm: false, ts: 0, op: 0.2 });
+  assert.deepEqual(parsePrefs('{"ts":2,"op":0.4}'), { sp: {}, pl: true, mn: true, js: false, nm: false, ts: 2, op: 0.4 });
+  assert.deepEqual(parsePrefs(null), { sp: {}, pl: true, mn: true, js: false, nm: false, ts: 0, op: 1 });
+  assert.deepEqual(parsePrefs('no es json'), { sp: {}, pl: true, mn: true, js: false, nm: false, ts: 0, op: 1 });
+  assert.deepEqual(parsePrefs('{"ts":9,"op":-3}'), { sp: {}, pl: true, mn: true, js: false, nm: false, ts: 0, op: 0.2 });
 });
 test('vista JSON: solo se activa con true', () => { assert.equal(parsePrefs('{"js":true}').js, true); assert.equal(parsePrefs('{"js":"si"}').js, false); });
 test('alcance de trayectorias por astro; lo inválido (o el formato viejo numérico) se ignora', () => {
@@ -23,3 +23,5 @@ test('alcance de trayectorias por astro; lo inválido (o el formato viejo numér
   assert.deepEqual(parsePrefs('{"sp":2}').sp, {});
   assert.equal(parsePrefs('{"pl":false}').pl, false); assert.equal(parsePrefs('{}').pl, true);
 });
+
+test('lunas: activadas por defecto, se pueden apagar', () => { assert.equal(parsePrefs('{}').mn, true); assert.equal(parsePrefs('{"mn":false}').mn, false); });
