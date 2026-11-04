@@ -380,11 +380,13 @@ function drawMoons(atV) {
       octx.fillStyle = 'rgba(0,0,0,.78)'; octx.beginPath(); octx.arc(c[0], c[1], Math.max(1.5, rpx(def) * 0.95), 0, 6.2832); octx.fill();
     }
     for (const s of m.list) {
-      if (s.occulted) continue;
+      if (s.occulted || s.ringCover > 0.9) continue;
       const def = pl.moons.find((q) => q.key === s.key), c = at2(s.dxArcsec, s.dyArcsec); if (!c) continue; const r = rpx(def);
+      octx.globalAlpha = 1 - 0.6 * (s.ringCover || 0);                                  // detrás de un anillo translúcido se ve atenuada
       octx.fillStyle = s.eclipsed ? 'rgba(150,70,50,.9)' : s.transit ? 'rgba(60,58,62,.92)' : (def.color || '#e1e1d7');
       octx.beginPath(); octx.arc(c[0], c[1], r, 0, 6.2832); octx.fill(); octx.strokeStyle = 'rgba(0,0,0,.6)'; octx.lineWidth = 1; octx.stroke();
       if (showNames || (bodyPx[pl.planet] || 0) >= 10) { octx.fillStyle = 'rgba(205,200,255,.9)'; octx.fillText(moonName(def, getLang()), c[0] + r + 5, c[1] - 6); }
+      octx.globalAlpha = 1;
     }
   }
 }
@@ -538,7 +540,7 @@ function describe() {
     if (mags[sel.key] > NAKED_EYE_LIMIT) rows.push([T('row.obs'), T('row.needsScope')]);
     rows.push([T('row.state'), T(b.alt_apparent_deg >= 0 ? 'row.up' : 'row.down')]);
     const ms = ui.mn ? moonsFor(sel.key) : null;
-    if (ms) for (const s of ms.list) rows.push([moonName(ms.pl.moons.find((q) => q.key === s.key), getLang()), `${s.sepArcsec.toFixed(1)}″ ${T(s.dxArcsec >= 0 ? 'sat.east' : 'sat.west')} · ${T(s.occulted ? 'sat.occulted' : s.transit ? 'sat.transit' : s.eclipsed ? 'sat.eclipsed' : 'sat.visible')}${s.shadow && !s.occulted ? ' · ' + T('sat.shadow') : ''}`]);
+    if (ms) for (const s of ms.list) rows.push([moonName(ms.pl.moons.find((q) => q.key === s.key), getLang()), `${s.sepArcsec.toFixed(1)}″ ${T(s.dxArcsec >= 0 ? 'sat.east' : 'sat.west')} · ${T(s.occulted ? 'sat.occulted' : s.ringCover > 0.9 ? 'sat.rings' : s.transit ? 'sat.transit' : s.eclipsed ? 'sat.eclipsed' : 'sat.visible')}${s.shadow && !s.occulted ? ' · ' + T('sat.shadow') : ''}`]);
   } else {
     const s = starCat[sel.i], e = starVec(sel.i), name = starNameOf(sel.i);
     const info = starInfo && starInfo[sel.i], hip = info && info[1];
@@ -563,7 +565,7 @@ let jsonOpen = false, jsonText = '', jsonObj = null;
 function currentExport() {
   if (!sel || !lastSnap || !rotM) return null;
   const observer = { lat: obs.lat, lon: obs.lon };
-  if (sel.kind === 'body') return buildExport({ kind: 'body', key: sel.key, name: bodyName(sel.key, 'en'), data: lastSnap.bodies[sel.key], snap: lastSnap, observer, extra: sel.key === 'Luna' ? lastSnap.luna : (() => { const ms = ui.mn ? moonsFor(sel.key) : null; return ms ? { satellites: { plugin: ms.pl.id, model: ms.pl.model, moons: ms.list.map((s) => ({ key: s.key, east_arcsec: +s.dxArcsec.toFixed(3), north_arcsec: +s.dyArcsec.toFixed(3), separation_arcsec: +s.sepArcsec.toFixed(3), line_of_sight_km: Math.round(s.zKm), transit: s.transit, occulted: s.occulted, in_planet_shadow: s.eclipsed, shadow_on_disc: !!s.shadow })) } } : undefined; })() });
+  if (sel.kind === 'body') return buildExport({ kind: 'body', key: sel.key, name: bodyName(sel.key, 'en'), data: lastSnap.bodies[sel.key], snap: lastSnap, observer, extra: sel.key === 'Luna' ? lastSnap.luna : (() => { const ms = ui.mn ? moonsFor(sel.key) : null; return ms ? { satellites: { plugin: ms.pl.id, model: ms.pl.model, moons: ms.list.map((s) => ({ key: s.key, east_arcsec: +s.dxArcsec.toFixed(3), north_arcsec: +s.dyArcsec.toFixed(3), separation_arcsec: +s.sepArcsec.toFixed(3), line_of_sight_km: Math.round(s.zKm), transit: s.transit, occulted: s.occulted, behind_rings_opacity: s.ringCover, in_planet_shadow: s.eclipsed, shadow_on_disc: !!s.shadow })) } } : undefined; })() });
   const s = starCat[sel.i], info = starInfo && starInfo[sel.i], h = horizontalOf(rotM, starVec(sel.i));
   return buildExport({ kind: 'star', key: 'star:' + sel.i, name: starName(starNameOf(sel.i), 'en') || (info && info[1] ? `HIP ${info[1]}` : `star ${sel.i}`), snap: lastSnap, observer,
     data: { ra_j2000_deg: s[0], dec_j2000_deg: s[1], magnitude: s[2], bv_index: s[3], hip: info ? info[1] : null, az_deg: h.az, alt_geometric_deg: h.alt, lst_deg: lastSnap.meta.sidereal.lst_deg } });

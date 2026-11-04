@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { solveKepler, moonPositionKm } from '../src/satellites/orbits.mjs';
 import { moonsOnSky } from '../src/satellites/sky.mjs';
 import { MARS_PLUGIN } from '../src/satellites/mars.mjs';
+import { SATURN_PLUGIN } from '../src/satellites/saturn.mjs';
 import { JUPITER_PLUGIN } from '../src/satellites/jupiter.mjs';
 import { elementsAt } from '../src/satellites/orbits.mjs';
-import { insideSilhouette, shadowSpot } from '../src/satellites/sky.mjs';
+import { insideSilhouette, shadowSpot, ringCover } from '../src/satellites/sky.mjs';
 import { pluginFor, SAT_PLUGINS } from '../src/satellites/index.mjs';
 
 const JD0 = 2451545.0, [PHOBOS, DEIMOS] = MARS_PLUGIN.moons;
@@ -38,7 +39,7 @@ test('Fobos da la vuelta en ~7 h 39 min y Deimos en ~30 h 18 min; sentido direct
   const a = moonPositionKm(PHOBOS.elements, JD0 + 50), b = moonPositionKm(PHOBOS.elements, JD0 + 50.01);
   const cr = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; assert.ok(cr[0] * n[0] + cr[1] * n[1] + cr[2] * n[2] > 0);
 });
-test('plugin registrado para Marte', () => { assert.equal(SAT_PLUGINS.length, 2); assert.equal(pluginFor('Jupiter').moons.length, 4); assert.equal(pluginFor('Marte').id, 'mars-mean'); assert.equal(pluginFor('Venus'), null); });
+test('plugin registrado para Marte', () => { assert.equal(SAT_PLUGINS.length, 3); assert.equal(pluginFor('Saturno').moons.length, 6); assert.equal(pluginFor('Jupiter').moons.length, 4); assert.equal(pluginFor('Marte').id, 'mars-mean'); assert.equal(pluginFor('Venus'), null); });
 
 // Marte en ra=0, dec=0 a 0,5 UA; Sol en la dirección opuesta (oposición): la Tierra está entre el Sol y Marte
 const mars = { ra_deg: 0, dec_deg: 0, dist_au: 0.5 }, sunOpp = { ra_deg: 180, dec_deg: 0, dist_au: 1 };
@@ -99,4 +100,32 @@ test('Júpiter: una luna entre el planeta y la Tierra proyecta su sombra sobre e
   const jup = { ra_deg: 0, dec_deg: 0, dist_au: 5 }, sun = { ra_deg: 180, dec_deg: 0, dist_au: 1 };   // oposición
   let found = 0; for (let d = 0; d < 20; d += 0.01) { const s = moonsOnSky(JUPITER_PLUGIN, jup, sun, JD0 + d)[2]; if (s.shadow && s.transit) { found++; assert.ok(Math.hypot(s.shadow.dxArcsec, s.shadow.dyArcsec) < s.diskArcsec * 1.01); } }
   assert.ok(found > 0);
+});
+
+// ── Saturno ──
+const SM = Object.fromEntries(SATURN_PLUGIN.moons.map((m) => [m.key, m])), YR = 365.25;
+test('Saturno: resonancia Encélado–Dione (2n₄ − n₂ = precesión del periapsis de Encélado) y Mimas–Tetis (2n₁ − 4n₃ + Ω̇₁ + Ω̇₃ = 0)', () => {
+  const n = (k) => SM[k].elements.nSid, e = (k) => SM[k].elements;
+  assert.ok(Math.abs(2 * n('Dione') - n('Encelado') - 360 / (e('Encelado').Papsis * YR)) < 0.002);
+  assert.ok(Math.abs(2 * n('Mimas') - 4 * n('Tetis') - 360 / (e('Mimas').Pnode * YR) - 360 / (e('Tetis').Pnode * YR)) < 0.002);
+});
+test('Saturno: períodos siderales conocidos y la separación máxima de Titán en oposición es de unos 3′', () => {
+  const P = SATURN_PLUGIN.moons.map((m) => 360 / m.elements.nSid); [0.942422, 1.370218, 1.887802, 2.736915, 4.5175, 15.945448].forEach((x, i) => assert.ok(Math.abs(P[i] - x) < 1e-5, `${i} ${P[i]}`));
+  const sat = { ra_deg: 10, dec_deg: 0, dist_au: 9.5 }, sun = { ra_deg: 190, dec_deg: 0, dist_au: 1 };
+  let mx = 0; for (let d = 0; d < 20; d += 0.05) mx = Math.max(mx, moonsOnSky(SATURN_PLUGIN, sat, sun, JD0 + d)[5].sepArcsec);
+  assert.ok(mx > 160 && mx < 200, String(mx));       // 1.22e6 km / 9.5 UA ≈ 177″
+});
+test('anillos: una luna detrás del anillo B queda tapada; delante o fuera de los anillos, no', () => {
+  const R = SATURN_PLUGIN.rings, n = [0, 0, 1], d = unitDir(Math.sin(0.4), 0, -Math.cos(0.4));    // vista con los anillos abiertos (≈23° de inclinación): d apunta "hacia abajo" del plano
+  assert.equal(ringCover([100000, 0, 40000], d, n, R) >= 0, true);
+  const behind = [0, 100000 * 0.3, 20000], front = [0, -100000 * 0.3, -20000];
+  const a = ringCover(behind, d, n, R), b = ringCover(front, d, n, R); assert.ok(a === 0 || b === 0);   // una de las dos está detrás del plano y la otra delante
+  assert.equal(ringCover([300000, 0, 0], [0, 0, -1], n, R), 0);                    // fuera de los anillos
+});
+function unitDir(x, y, z) { const m = Math.hypot(x, y, z); return [x / m, y / m, z / m]; }
+test('anillos: con los anillos de canto no tapan; la luna sobre el plano visto desde arriba atraviesa un anillo opaco', () => {
+  const R = SATURN_PLUGIN.rings, n = [0, 0, 1];
+  assert.equal(ringCover([100000, 0, 5000], [1, 0, 0], n, R), 0);                  // d·n = 0
+  assert.equal(ringCover([100000, 0, 50000], [0, 0, 1], n, R), 1);                 // desde abajo (observador en −z, d = +z): la luna está sobre el plano y detrás del anillo B (ρ = 100.000)
+  assert.equal(ringCover([100000, 0, -50000], [0, 0, 1], n, R), 0);                // la misma luna por debajo del plano, vista desde abajo: delante del anillo
 });

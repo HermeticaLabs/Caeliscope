@@ -26,6 +26,15 @@ export function shadowSpot(p, toSun, n, R, f) {
   return [p[0] - t * toSun[0], p[1] - t * toSun[1], p[2] - t * toSun[2]];
 }
 
+// Cuánto tapan los anillos (opacidad 0..1) a un punto p (km, planeta en el origen) visto desde la Tierra: los anillos son el plano ecuatorial del planeta; tapan si el rayo
+// observador → luna cruza el plano dentro de algún anillo ANTES de llegar a la luna (la luna está detrás de ellos).
+export function ringCover(p, d, n, rings) {
+  const dn = dot(d, n); if (Math.abs(dn) < 1e-9) return 0;
+  const t = -dot(p, n) / dn; if (t >= 0) return 0;                                      // el plano queda del lado de la luna que mira lejos de la Tierra: no tapa
+  const q = [p[0] + t * d[0], p[1] + t * d[1], p[2] + t * d[2]], rho = norm(q);
+  let o = 0; for (const r of rings) if (rho >= r.rIn && rho <= r.rOut) o = Math.max(o, r.opacity); return o;
+}
+
 // plugin: { planet, radiusKm (ecuatorial), flattening, pole: [ra, dec], moons: [{ key, elements }] }; planet/sun: cuerpos con ra_deg, dec_deg, dist_au
 export function moonsOnSky(plugin, planet, sun, jd) {
   const a = planet.ra_deg * D2R, d = planet.dec_deg * D2R, dist = planet.dist_au * AU_KM;
@@ -45,6 +54,7 @@ export function moonsOnSky(plugin, planet, sun, jd) {
       occulted: behind && onDisk, transit: !behind && onDisk,
       eclipsed: sunSide < 0 && insideSilhouette(p, toSun, pole, R, f),                  // sombra cilíndrica del planeta (el cono real se estrecha apenas a estas distancias)
       shadow: shadowVisible ? { dxArcsec: (dot(sh, east) / dist) * ARCSEC, dyArcsec: (dot(sh, north) / dist) * ARCSEC } : null,
+      ringCover: plugin.rings ? ringCover(p, los, pole, plugin.rings) : 0,
       diskArcsec,
     };
   });
