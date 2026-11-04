@@ -4,6 +4,7 @@ import { solveKepler, moonPositionKm } from '../src/satellites/orbits.mjs';
 import { moonsOnSky } from '../src/satellites/sky.mjs';
 import { MARS_PLUGIN } from '../src/satellites/mars.mjs';
 import { SATURN_PLUGIN } from '../src/satellites/saturn.mjs';
+import { URANUS_PLUGIN } from '../src/satellites/uranus.mjs';
 import { JUPITER_PLUGIN } from '../src/satellites/jupiter.mjs';
 import { elementsAt } from '../src/satellites/orbits.mjs';
 import { insideSilhouette, shadowSpot, ringCover } from '../src/satellites/sky.mjs';
@@ -39,7 +40,7 @@ test('Fobos da la vuelta en ~7 h 39 min y Deimos en ~30 h 18 min; sentido direct
   const a = moonPositionKm(PHOBOS.elements, JD0 + 50), b = moonPositionKm(PHOBOS.elements, JD0 + 50.01);
   const cr = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; assert.ok(cr[0] * n[0] + cr[1] * n[1] + cr[2] * n[2] > 0);
 });
-test('plugin registrado para Marte', () => { assert.equal(SAT_PLUGINS.length, 3); assert.equal(pluginFor('Saturno').moons.length, 6); assert.equal(pluginFor('Jupiter').moons.length, 4); assert.equal(pluginFor('Marte').id, 'mars-mean'); assert.equal(pluginFor('Venus'), null); });
+test('plugin registrado para Marte', () => { assert.equal(SAT_PLUGINS.length, 4); assert.equal(pluginFor('Urano').moons.length, 5); assert.equal(pluginFor('Saturno').moons.length, 6); assert.equal(pluginFor('Jupiter').moons.length, 4); assert.equal(pluginFor('Marte').id, 'mars-mean'); assert.equal(pluginFor('Venus'), null); });
 
 // Marte en ra=0, dec=0 a 0,5 UA; Sol en la dirección opuesta (oposición): la Tierra está entre el Sol y Marte
 const mars = { ra_deg: 0, dec_deg: 0, dist_au: 0.5 }, sunOpp = { ra_deg: 180, dec_deg: 0, dist_au: 1 };
@@ -128,4 +129,17 @@ test('anillos: con los anillos de canto no tapan; la luna sobre el plano visto d
   assert.equal(ringCover([100000, 0, 5000], [1, 0, 0], n, R), 0);                  // d·n = 0
   assert.equal(ringCover([100000, 0, 50000], [0, 0, 1], n, R), 1);                 // desde abajo (observador en −z, d = +z): la luna está sobre el plano y detrás del anillo B (ρ = 100.000)
   assert.equal(ringCover([100000, 0, -50000], [0, 0, 1], n, R), 0);                // la misma luna por debajo del plano, vista desde abajo: delante del anillo
+});
+
+// ── Urano ──
+test('Urano: períodos siderales conocidos y eje inclinado ≈98° respecto de la eclíptica', () => {
+  const P = URANUS_PLUGIN.moons.map((m) => 360 / m.elements.nSid); [1.413479, 2.520379, 4.144176, 8.705867, 13.463234].forEach((x, i) => assert.ok(Math.abs(P[i] - x) < 1e-5, `${i} ${P[i]}`));
+  const v = (ra, de) => { const a = ra * Math.PI / 180, d = de * Math.PI / 180; return [Math.cos(d) * Math.cos(a), Math.cos(d) * Math.sin(a), Math.sin(d)]; };
+  const u = v(...URANUS_PLUGIN.pole), e = v(270, 66.5607), tilt = Math.acos(u[0] * e[0] + u[1] * e[1] + u[2] * e[2]) * 180 / Math.PI;
+  assert.ok(Math.abs(tilt - 97.77) < 0.2, String(tilt));
+});
+test('Urano: la separación máxima de Oberón en oposición es de unos 42″ y Miranda nunca se aleja más de ~10″', () => {
+  const ura = { ra_deg: 10, dec_deg: 0, dist_au: 19.2 }, sun = { ra_deg: 190, dec_deg: 0, dist_au: 1 };
+  let mo = 0, mm = 0; for (let d = 0; d < 30; d += 0.05) { const r = moonsOnSky(URANUS_PLUGIN, ura, sun, JD0 + d); mo = Math.max(mo, r[4].sepArcsec); mm = Math.max(mm, r[0].sepArcsec); }
+  assert.ok(mo > 38 && mo < 46, String(mo)); assert.ok(mm > 8 && mm < 12, String(mm));   // 583500 km y 129900 km a 19,2 UA
 });

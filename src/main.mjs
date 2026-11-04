@@ -8,6 +8,7 @@ import { fmtHMS, fmtDMS, planetPhase, elongationDeg, riseSetFromSamples, refract
 import { findPhase, findSunLongitude, findEclipseWhere, localSolarInfo, localSolarKind, lunarEclipseInfo } from './events.mjs';
 import { buildExport, toText, fileName } from './snapshot-json.mjs';
 import { TEXT_STEPS, nextTextStep, clampOpacity, parsePrefs } from './ui-prefs.mjs';
+import { aboutHtml, ABOUT } from './about.mjs';
 import { t as T, getLang, setLang, onLang, initLang, applyStatic, locale, bodyName, conName, starName } from './i18n.mjs';
 import { azimuthalGrid, equatorialGrid, eclipticLine, meridianLine } from './grids.mjs';
 import { MIN_FOV, maxFov, viewBasis, focalPx, projectDir, unprojectPx } from './projection.mjs';
@@ -1456,8 +1457,15 @@ $('tMoons').onclick = () => { ui.mn = !ui.mn; saveUi(); applyUi(); refreshCard()
 $('tPL').onclick = () => { ui.pl = !ui.pl; saveUi(); applyUi(); };
 $('tJson').onclick = () => { ui.js = !ui.js; saveUi(); applyUi(); refreshCard(); };
 $('panelOp').oninput = (e) => { ui.op = clampOpacity(+e.target.value / 100); saveUi(); applyUi(); };
+function renderAbout() { const A = ABOUT[getLang()] || ABOUT.en; $('abTitle').textContent = A.title; $('abClose').setAttribute('aria-label', A.close); $('abClose').title = A.close; $('abBody').innerHTML = aboutHtml(getLang()); $('abRepo').textContent = A.repo + ' ↗'; }
+let aboutFrom = null;
+function showAbout(on) { $('aboutWin').hidden = !on; $('aboutVeil').hidden = !on; if (on) { aboutFrom = document.activeElement; renderAbout(); $('abClose').focus(); } else if (aboutFrom && aboutFrom.focus) aboutFrom.focus(); }
+$('abClose').onclick = () => showAbout(false); $('aboutVeil').onclick = () => showAbout(false);
+$('skyLogo').onclick = () => showAbout(true); $('gAbout').onclick = () => showAbout(true);
+$('skyLogo').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showAbout(true); } });
+document.addEventListener('keydown', (e) => { if ($('aboutWin').hidden) return; if (e.key === 'Escape') showAbout(false); e.stopImmediatePropagation(); }, true);
 function applyLang() {
-  applyStatic(); syncGeoUi(); rebuildObjList(); buildEvMenu(); relabelDrums(); setSpeed(speed); setDanjonLbl(); renderGDetail(); buildRgMenu(); ecl.stamp = ''; if (geo.id) { geo.stamp = ''; geoTitle(); }
+  applyStatic(); if (!$('aboutWin').hidden) renderAbout(); syncGeoUi(); rebuildObjList(); buildEvMenu(); relabelDrums(); setSpeed(speed); setDanjonLbl(); renderGDetail(); buildRgMenu(); ecl.stamp = ''; if (geo.id) { geo.stamp = ''; geoTitle(); }
   for (const f of minApply) f();
   for (const b of document.querySelectorAll('[data-lang]')) b.setAttribute('aria-pressed', b.dataset.lang === getLang());
   frame.gt = ''; fitKey = ''; renderPathChip(); updateTrackUI(); refreshCard(); dirty = true;
