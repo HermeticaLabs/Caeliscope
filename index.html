@@ -69,12 +69,19 @@
   #skyLogo { pointer-events: auto; cursor: pointer; transition: filter .2s; } #skyLogo:hover, #skyLogo:focus-visible { filter: drop-shadow(0 0 8px rgba(94,223,229,.55)); outline: none; }
   .logobtn { display: flex; align-items: center; gap: 10px; padding: 0; border: 0; border-radius: 6px; background: none; cursor: pointer; } .logobtn:hover { filter: drop-shadow(0 0 8px rgba(94,223,229,.55)); }
   #aboutVeil { position: fixed; inset: 0; z-index: 40; background: rgba(2, 4, 9, .55); backdrop-filter: blur(3px); }
-  #aboutWin { z-index: 41; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(640px, calc(100vw - 28px)); max-height: calc(100vh - 40px); box-sizing: border-box; padding: 14px 18px 16px; display: flex; flex-direction: column; }
+  #aboutWin { z-index: 41; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(680px, calc(100vw - 28px)); max-height: calc(100vh - 40px); box-sizing: border-box; display: flex; flex-direction: column; }
   #aboutWin[hidden], #aboutVeil[hidden] { display: none; }
-  #abBody { overflow: auto; flex: 1 1 auto; padding-right: 6px; font-size: calc(13px * var(--ts)); line-height: 1.55; color: #d6def0; }
+  #aboutWin { padding: 18px 26px 18px; } #abClose { position: absolute; top: 10px; right: 10px; z-index: 2; }
+  .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+  .abhead { flex: none; display: flex; justify-content: center; padding: 6px 34px 14px; } .abhead img { width: 100%; max-width: 440px; height: auto; display: block; }
+  #abBody { overflow: auto; flex: 1 1 auto; padding-right: 6px; font-size: calc(13px * var(--ts)); line-height: 1.55; color: #d6def0; border-top: 1px solid rgba(220, 180, 80, .22); }
   #abBody h3 { margin: 14px 0 4px; font-size: calc(11px * var(--ts)); font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--oro); }
-  #abBody p { margin: 0 0 7px; } #abBody a, .abfoot a { color: var(--cian); } .ab-tag { margin-top: 0 !important; color: var(--lila); letter-spacing: .06em; }
-  .abfoot { margin-top: 12px; display: flex; justify-content: flex-end; } .abbtn { display: inline-block; padding: 6px 16px; border: 1px solid rgba(94,223,229,.45); border-radius: 999px; text-decoration: none; font-size: calc(13px * var(--ts)); } .abbtn:hover { background: rgba(94,223,229,.12); }
+  #abBody p { margin: 0 0 7px; } #abBody a { color: var(--cian); }
+  .abfoot { flex: none; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(220, 180, 80, .22); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; }
+  .abmail { color: var(--cian); font-size: calc(13px * var(--ts)); text-decoration: none; letter-spacing: .04em; } .abmail:hover { text-decoration: underline; }
+  .ablinks { display: flex; align-items: center; gap: 14px; margin-left: auto; } .ablinks a { display: block; line-height: 0; border-radius: 8px; transition: transform .15s, filter .15s; } .ablinks a:hover, .ablinks a:focus-visible { transform: translateY(-1px); filter: drop-shadow(0 0 7px rgba(94,223,229,.55)); outline: none; }
+  @media (max-width: 560px) { #aboutWin { padding: 14px 16px; } .ablinks { flex-wrap: wrap; justify-content: flex-end; gap: 8px 12px; } .ablinks img { height: 26px !important; } #abEngine img { height: 30px !important; } }
+  .ablinks img { height: 38px; width: auto; display: block; } #abEngine img { height: 44px; }
   #info { top: calc(12px + var(--pw) * 0.245 + 12px); left: 14px; padding: 10px 14px; width: calc(250px * var(--ts)); }
   #side { top: 14px; right: 14px; padding: 10px 14px; width: calc(262px * var(--ts)); z-index: 8; display: flex; flex-direction: column; max-height: calc(100vh - var(--barH, 170px) - 52px); box-sizing: content-box; }
   #side > * { flex: none; } #side > .sidebody { flex: 1 1 auto; }
@@ -287,9 +294,18 @@
   <small class="legal" data-i18n-html="opt.legal"></small>
 </div>
 <div id="aboutWin" class="hud" role="dialog" aria-modal="true" aria-labelledby="abTitle" hidden>
-  <div class="phdr"><span id="abTitle"></span><button class="minbtn" id="abClose" type="button">✕</button></div>
+  <button class="minbtn" id="abClose" type="button">✕</button>
+  <h2 id="abTitle" class="srOnly"></h2>
+  <div class="abhead"><img src="/brand/about-caeliscope-word.svg" alt="Caeliscope" draggable="false"></div>
   <div id="abBody"></div>
-  <div class="abfoot"><a id="abRepo" class="abbtn" href="https://github.com/HermeticaLabs/Caeliscope" target="_blank" rel="noopener"></a></div>
+  <div class="abfoot">
+    <a id="abContact" class="abmail" href="mailto:hermeticalabs.dev@proton.me"></a>
+    <span class="ablinks">
+      <a id="abRepo" href="https://github.com/HermeticaLabs/Caeliscope" target="_blank" rel="noopener"><img src="/brand/about-github.png" alt="" draggable="false"></a>
+      <a id="abEngine" href="https://github.com/hermeticalabs/caelis-engine" target="_blank" rel="noopener"><img src="/brand/about-engine.png" alt="" draggable="false"></a>
+      <a id="abHerm" href="https://github.com/HermeticaLabs/caelis-engine#built-with-caelis-engine" target="_blank" rel="noopener"><img src="/brand/about-hermetica.png" alt="" draggable="false"></a>
+    </span>
+  </div>
 </div>
 <div id="aboutVeil" hidden></div>
 <div id="geoWin" class="hud skyhud" data-min="gw" hidden>

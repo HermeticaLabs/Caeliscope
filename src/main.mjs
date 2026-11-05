@@ -1457,7 +1457,7 @@ $('tMoons').onclick = () => { ui.mn = !ui.mn; saveUi(); applyUi(); refreshCard()
 $('tPL').onclick = () => { ui.pl = !ui.pl; saveUi(); applyUi(); };
 $('tJson').onclick = () => { ui.js = !ui.js; saveUi(); applyUi(); refreshCard(); };
 $('panelOp').oninput = (e) => { ui.op = clampOpacity(+e.target.value / 100); saveUi(); applyUi(); };
-function renderAbout() { const A = ABOUT[getLang()] || ABOUT.en; $('abTitle').textContent = A.title; $('abClose').setAttribute('aria-label', A.close); $('abClose').title = A.close; $('abBody').innerHTML = aboutHtml(getLang()); $('abRepo').textContent = A.repo + ' ↗'; }
+function renderAbout() { const A = ABOUT[getLang()] || ABOUT.en; $('abTitle').textContent = A.title; $('abClose').setAttribute('aria-label', A.close); $('abClose').title = A.close; $('abBody').innerHTML = aboutHtml(getLang()); $('abContact').textContent = A.contact; for (const [id, k] of [['abRepo', 'altRepo'], ['abEngine', 'altEngine'], ['abHerm', 'altHerm']]) { const e = $(id); e.title = A[k]; e.setAttribute('aria-label', A[k]); } }
 let aboutFrom = null;
 function showAbout(on) { $('aboutWin').hidden = !on; $('aboutVeil').hidden = !on; if (on) { aboutFrom = document.activeElement; renderAbout(); $('abClose').focus(); } else if (aboutFrom && aboutFrom.focus) aboutFrom.focus(); }
 $('abClose').onclick = () => showAbout(false); $('aboutVeil').onclick = () => showAbout(false);
