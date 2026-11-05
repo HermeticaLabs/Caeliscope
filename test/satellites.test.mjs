@@ -5,6 +5,7 @@ import { moonsOnSky } from '../src/satellites/sky.mjs';
 import { MARS_PLUGIN } from '../src/satellites/mars.mjs';
 import { SATURN_PLUGIN } from '../src/satellites/saturn.mjs';
 import { URANUS_PLUGIN } from '../src/satellites/uranus.mjs';
+import { NEPTUNE_PLUGIN } from '../src/satellites/neptune.mjs';
 import { JUPITER_PLUGIN } from '../src/satellites/jupiter.mjs';
 import { elementsAt } from '../src/satellites/orbits.mjs';
 import { insideSilhouette, shadowSpot, ringCover } from '../src/satellites/sky.mjs';
@@ -40,7 +41,7 @@ test('Fobos da la vuelta en ~7 h 39 min y Deimos en ~30 h 18 min; sentido direct
   const a = moonPositionKm(PHOBOS.elements, JD0 + 50), b = moonPositionKm(PHOBOS.elements, JD0 + 50.01);
   const cr = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; assert.ok(cr[0] * n[0] + cr[1] * n[1] + cr[2] * n[2] > 0);
 });
-test('plugin registrado para Marte', () => { assert.equal(SAT_PLUGINS.length, 4); assert.equal(pluginFor('Urano').moons.length, 5); assert.equal(pluginFor('Saturno').moons.length, 6); assert.equal(pluginFor('Jupiter').moons.length, 4); assert.equal(pluginFor('Marte').id, 'mars-mean'); assert.equal(pluginFor('Venus'), null); });
+test('plugin registrado para Marte', () => { assert.equal(SAT_PLUGINS.length, 5); assert.equal(pluginFor('Neptuno').moons.length, 2); assert.equal(pluginFor('Urano').moons.length, 5); assert.equal(pluginFor('Saturno').moons.length, 6); assert.equal(pluginFor('Jupiter').moons.length, 4); assert.equal(pluginFor('Marte').id, 'mars-mean'); assert.equal(pluginFor('Venus'), null); });
 
 // Marte en ra=0, dec=0 a 0,5 UA; Sol en la dirección opuesta (oposición): la Tierra está entre el Sol y Marte
 const mars = { ra_deg: 0, dec_deg: 0, dist_au: 0.5 }, sunOpp = { ra_deg: 180, dec_deg: 0, dist_au: 1 };
@@ -142,4 +143,22 @@ test('Urano: la separación máxima de Oberón en oposición es de unos 42″ y 
   const ura = { ra_deg: 10, dec_deg: 0, dist_au: 19.2 }, sun = { ra_deg: 190, dec_deg: 0, dist_au: 1 };
   let mo = 0, mm = 0; for (let d = 0; d < 30; d += 0.05) { const r = moonsOnSky(URANUS_PLUGIN, ura, sun, JD0 + d); mo = Math.max(mo, r[4].sepArcsec); mm = Math.max(mm, r[0].sepArcsec); }
   assert.ok(mo > 38 && mo < 46, String(mo)); assert.ok(mm > 8 && mm < 12, String(mm));   // 583500 km y 129900 km a 19,2 UA
+});
+
+// ── Neptuno ──
+test('Neptuno: Tritón es retrógrado (su momento angular apunta contra el polo de Neptuno) y su período es 5,877 d', () => {
+  const T = NEPTUNE_PLUGIN.moons[0].elements, dt = 0.01, p0 = moonPositionKm(T, JD0), p1 = moonPositionKm(T, JD0 + dt);
+  const h = [p0[1] * p1[2] - p0[2] * p1[1], p0[2] * p1[0] - p0[0] * p1[2], p0[0] * p1[1] - p0[1] * p1[0]];
+  const v = (ra, de) => { const a = ra * Math.PI / 180, d = de * Math.PI / 180; return [Math.cos(d) * Math.cos(a), Math.cos(d) * Math.sin(a), Math.sin(d)]; };
+  const n = v(...NEPTUNE_PLUGIN.pole), cos = (h[0] * n[0] + h[1] * n[1] + h[2] * n[2]) / Math.hypot(...h);
+  assert.ok(cos < -0.85 && cos > -0.97, String(cos));                                  // cos(157°) ≈ −0,92
+  assert.ok(Math.abs(360 / T.nSid - 5.876854) < 1e-5);
+});
+test('Neptuno: Nereida oscila entre ~1,4 y ~9,7 millones de km y Tritón nunca pasa de ~16″ en oposición', () => {
+  const N = NEPTUNE_PLUGIN.moons[1].elements; let mn = 1e12, mx = 0;
+  for (let d = 0; d < 361; d += 0.5) { const r = Math.hypot(...moonPositionKm(N, JD0 + d)); mn = Math.min(mn, r); mx = Math.max(mx, r); }
+  assert.ok(mn > 1.3e6 && mn < 1.5e6, String(mn)); assert.ok(mx > 9.5e6 && mx < 9.8e6, String(mx));
+  const nep = { ra_deg: 10, dec_deg: 0, dist_au: 30.1 }, sun = { ra_deg: 190, dec_deg: 0, dist_au: 1 };
+  let mt = 0; for (let d = 0; d < 12; d += 0.02) mt = Math.max(mt, moonsOnSky(NEPTUNE_PLUGIN, nep, sun, JD0 + d)[0].sepArcsec);
+  assert.ok(mt > 14 && mt < 17, String(mt));
 });

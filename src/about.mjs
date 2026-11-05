@@ -1,5 +1,5 @@
 // Contenido de la ventana "Acerca de" (se abre con el logo): qué es, privacidad, créditos, controles y compatibilidad. Texto plano en EN/ES, sin dependencias del navegador.
-export const ABOUT_VERSION = '1.45.0';
+export const ABOUT_VERSION = '1.46.0';
 export const REPO = 'https://github.com/HermeticaLabs/Caeliscope';
 export const ENGINE_REPO = 'https://github.com/hermeticalabs/caelis-engine';
 export const HERMETICA_LINK = `${ENGINE_REPO}#built-with-caelis-engine`;
@@ -27,7 +27,7 @@ export const ABOUT = {
         'To remember your choices between visits, Caeliscope uses your browser’s local storage: language, last observer location, interface preferences (text size, panel opacity, night mode, toggles), minimised panels and window positions. It stays in your browser and you can erase it at any time from your browser’s site data settings.',
         'Opening a Wikipedia link from an object’s card contacts that site, and only when you click it.'] },
       { id: 'credits', h: 'Engine, data and credits', p: [
-        'Positions of the Sun, Moon and planets, sidereal time, eclipses and visibility: Caelis Engine (AGPL-3.0-or-later). The natural satellites of Mars, Jupiter, Saturn and Uranus use mean orbital elements from NASA’s Jet Propulsion Laboratory.',
+        'Positions of the Sun, Moon and planets, sidereal time, eclipses and visibility: Caelis Engine (AGPL-3.0-or-later). The natural satellites of Mars, Jupiter, Saturn, Uranus and Neptune use mean orbital elements from NASA’s Jet Propulsion Laboratory.',
         'Stars, constellations and names: Hipparcos (ESA) through d3-celestial by Olaf Frohn (BSD-3-Clause). Milky Way and Moon textures: NASA (Scientific Visualization Studio, CGI Moon Kit). Earth imagery: NASA Blue Marble, Black Marble and GIBS. Planet textures: NASA and Solar System Scope (CC BY 4.0). Time zones: tz-lookup. Graphics: three.js (MIT). Fonts: SIL Open Font License.',
         `Full texts: ${a(LICENSES, 'third-party licenses')}. “Caelis Engine”, “Caeliscope” and “Hermetica Labs” names and logos are not covered by the code licence. Contact: ${CONTACT}.`] },
       { id: 'controls', h: 'Controls', p: [
@@ -56,7 +56,7 @@ export const ABOUT = {
         'Para recordar tus elecciones entre visitas, Caeliscope usa el almacenamiento local del navegador: idioma, última ubicación del observador, preferencias de interfaz (tamaño de texto, opacidad de paneles, modo nocturno, interruptores), paneles minimizados y posición de las ventanas. Se queda en tu navegador y puedes borrarlo cuando quieras desde los datos del sitio en la configuración del navegador.',
         'Abrir un enlace a Wikipedia desde la ficha de un objeto contacta ese sitio, y solo si haces clic.'] },
       { id: 'credits', h: 'Motor, datos y créditos', p: [
-        'Posiciones del Sol, la Luna y los planetas, tiempo sidéreo, eclipses y visibilidad: Caelis Engine (AGPL-3.0-or-later). Los satélites naturales de Marte, Júpiter, Saturno y Urano usan elementos orbitales medios del Jet Propulsion Laboratory de la NASA.',
+        'Posiciones del Sol, la Luna y los planetas, tiempo sidéreo, eclipses y visibilidad: Caelis Engine (AGPL-3.0-or-later). Los satélites naturales de Marte, Júpiter, Saturno, Urano y Neptuno usan elementos orbitales medios del Jet Propulsion Laboratory de la NASA.',
         'Estrellas, constelaciones y nombres: Hipparcos (ESA) a través de d3-celestial de Olaf Frohn (BSD-3-Clause). Texturas de la Vía Láctea y la Luna: NASA (Scientific Visualization Studio, CGI Moon Kit). Imágenes de la Tierra: NASA Blue Marble, Black Marble y GIBS. Texturas de planetas: NASA y Solar System Scope (CC BY 4.0). Husos horarios: tz-lookup. Gráficos: three.js (MIT). Tipografías: SIL Open Font License.',
         `Textos completos: ${a(LICENSES, 'licencias de terceros')}. Los nombres y logotipos “Caelis Engine”, “Caeliscope” y “Hermetica Labs” no están cubiertos por la licencia del código. Contacto: ${CONTACT}.`] },
       { id: 'controls', h: 'Controles', p: [
