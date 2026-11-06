@@ -1,8 +1,8 @@
 // Service worker de Caeliscope: permite instalarlo como app y abrirlo sin conexión después de la primera visita.
 // Solo guarda archivos de este mismo sitio (código, catálogos, texturas, tipografías). Las imágenes satelitales de NASA GIBS del globo
 // NO se guardan: sin conexión el globo funciona con las texturas locales y se omite el detalle del mapa.
-// Subir CACHE_VERSION en cada versión (una prueba lo comprueba contra package.json).
-const CACHE_VERSION = '1.47.0';
+// El identificador lo escribe solo cada compilación (scripts/stamp-sw.mjs): no hay que tocarlo a mano.
+const CACHE_VERSION = '__BUILD_ID__';
 const CACHE = `caeliscope-${CACHE_VERSION}`;
 
 self.addEventListener('install', () => self.skipWaiting());

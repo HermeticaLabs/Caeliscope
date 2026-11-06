@@ -1,6 +1,6 @@
 {
   "name": "caeliscope",
-  "version": "1.47.0",
+  "version": "1.47.1",
   "type": "commonjs",
   "scripts": {
     "dev": "vite",

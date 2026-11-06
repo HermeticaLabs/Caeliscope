@@ -469,12 +469,12 @@ function selScreen() {
   if (sel.kind === 'moon') { const m = moonSel(); return m ? moonProjector(m.pl, project)(m.s.dxArcsec, m.s.dyArcsec) : null; }
   return project(rotVec(rotM, starVec(sel.i)));
 }
-function pick(px, py) { // el objeto más cercano al clic: primero cuerpos, luego estrellas visibles
+function pick(px, py, touch = false) { // el objeto más cercano al clic: primero cuerpos, luego estrellas visibles
   if (!last || !rotM) return null;
-  let best = null;
+  let best = null; const k = touch ? 1.7 : 1;                                           // con el dedo la zona de toque es más grande
   const cand = (item, s, rad, bias) => {
     const d = Math.hypot(s[0] - px, s[1] - py);
-    if (d <= rad && (!best || d - bias < best.sc)) best = { ...item, sc: d - bias };
+    if (d <= rad * k && (!best || d - bias < best.sc)) best = { ...item, sc: d - bias };
   };
   const tryIt = (item, v, rad, bias) => { const s = project(v); if (s) cand(item, s, rad, bias); };
   if (ui.mn) for (const pl of SAT_PLUGINS) {                                           // lunas: ganan al planeta cuando el clic cae sobre ellas
@@ -1044,26 +1044,30 @@ $('evNext').onclick = () => searchEvent(1);
 
 // ── Controles ──────────────────────────────────────────────────────────────────
 const cv = $('c');
-const ptrs = new Map();
+const ptrs = new Map(); let lastTap = null, lastTapWasTouch = false;
 let down = null;
 const clampFov = (v) => clamp(v, MIN_FOV, maxFov(view.mode));
 cv.addEventListener('pointerdown', (e) => {
   ptrs.set(e.pointerId, [e.clientX, e.clientY]); goal = null; cv.setPointerCapture(e.pointerId);
-  if (ptrs.size === 1) down = { x: e.clientX, y: e.clientY, t: performance.now(), pinch: false }; else if (down) down.pinch = true;
+  if (ptrs.size === 1) down = { x: e.clientX, y: e.clientY, t: performance.now(), pinch: false, touch: e.pointerType !== 'mouse' }; else if (down) down.pinch = true;
 });
 cv.addEventListener('pointerup', (e) => {
   ptrs.delete(e.pointerId);
-  if (down && !down.pinch && ptrs.size === 0 && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 6 && performance.now() - down.t < 600) {
-    sel = pick(e.clientX, e.clientY); rsKey = ''; rs = null; refreshCard();
+  if (down && !down.pinch && ptrs.size === 0 && Math.hypot(e.clientX - down.x, e.clientY - down.y) < (down.touch ? 18 : 6) && performance.now() - down.t < (down.touch ? 800 : 600)) {   // un toque con el dedo siempre se mueve unos píxeles
+    const now = performance.now(), dbl = down.touch && lastTap && now - lastTap.t < 380 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 36;
+    lastTapWasTouch = down.touch; lastTap = down.touch && !dbl ? { t: now, x: e.clientX, y: e.clientY } : null;
+    if (dbl) followAt(e.clientX, e.clientY, true);                                  // doble toque = seguir (en pantallas táctiles no siempre llega el evento dblclick)
+    else { sel = pick(e.clientX, e.clientY, down.touch); rsKey = ''; rs = null; refreshCard(); }
   }
   if (ptrs.size === 0) down = null;
 });
-cv.addEventListener('dblclick', (e) => {            // doble clic sobre un objeto: lo selecciona y lo sigue
-  const p = pick(e.clientX, e.clientY); if (!p) return;
+function followAt(x, y, touch) {                      // doble clic / doble toque sobre un objeto: lo selecciona y lo sigue
+  const p = pick(x, y, touch); if (!p) return;
   sel = p; rsKey = ''; rs = null; startTrack(p); refreshCard();
   if (p.kind === 'moon') { const m = moonSel(); if (m) { const f = clamp(Math.max(zoomFovFor(p.planet), 2.6 * m.s.sepArcsec / 3600), MIN_FOV, 60); if (view.fov > f * 1.2) goal = { az: m.b.az_deg, alt: m.b.alt_apparent_deg, fov: f }; } }
   else if (p.kind === 'body' && view.fov > zoomFovFor(p.key) * 1.2) goal = { az: last[p.key].az_deg, alt: last[p.key].alt_apparent_deg, fov: zoomFovFor(p.key) };
-});
+}
+cv.addEventListener('dblclick', (e) => { if (!lastTapWasTouch) followAt(e.clientX, e.clientY, false); });
 cv.addEventListener('pointercancel', (e) => { ptrs.delete(e.pointerId); down = null; });
 cv.addEventListener('pointermove', (e) => {
   const prev = ptrs.get(e.pointerId); if (!prev) return;
