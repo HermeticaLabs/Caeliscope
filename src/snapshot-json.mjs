@@ -3,9 +3,9 @@
 export const APP = { name: 'Caeliscope', url: 'https://github.com/HermeticaLabs/Caeliscope' };
 export const ENGINE = { name: 'Caelis Engine', version: '4.0.13', url: 'https://github.com/hermeticalabs/caelis-engine' };   // actualizar al sincronizar el motor
 export const PUBLISHER = 'Hermetica Labs';
-export const ORIGIN = { star: 'Hipparcos catalogue (via d3-celestial); horizontal coordinates computed by Caeliscope from the engine sidereal time', body: 'Caelis Engine getSnapshotAt()' };
+export const ORIGIN = { star: 'Hipparcos catalogue (via d3-celestial); horizontal coordinates computed by Caeliscope from the engine sidereal time', body: 'Caelis Engine getSnapshotAt()', moon: 'Caeliscope satellite plugin (mean orbital elements) over the planet position resolved by Caelis Engine getSnapshotAt()' };
 
-// kind: 'body' | 'star'. snap = lo que devolvió getSnapshotAt. data = objeto del cuerpo (o de la estrella).
+// kind: 'body' | 'star' | 'moon'. snap = lo que devolvió getSnapshotAt. data = objeto del cuerpo (o de la estrella).
 export function buildExport({ kind, key, name, data, snap, observer, extra }) {
   const meta = snap?.meta ?? {};
   const out = {

@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Caeliscope · Demo Proof</title>
 <link rel="icon" type="image/svg+xml" href="/brand/caeliscope-icon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#05070d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Caeliscope">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
   :root { --ts: 1; --op: 1; --oro: #dcb450; --lila: #b4a5ff; --cian: #5edfe5; --vidrio: rgba(5, 7, 13, .62); --ui: 'Jost Variable', 'Jost', 'Helvetica Neue', Arial, sans-serif; color-scheme: dark; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #05070d; font-family: Georgia, serif; color: #eee; }
@@ -78,6 +85,7 @@
   #abBody h3 { margin: 14px 0 4px; font-size: calc(11px * var(--ts)); font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--oro); }
   #abBody p { margin: 0 0 7px; } #abBody a { color: var(--cian); }
   .abfoot { flex: none; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(220, 180, 80, .22); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; }
+  .abside { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; } .abinst { padding: 3px 12px; font-size: calc(12px * var(--ts)); border-color: rgba(94,223,229,.45); color: var(--cian); cursor: pointer; } .abinst:hover { background: rgba(94,223,229,.12); }
   .abmail { color: var(--cian); font-size: calc(13px * var(--ts)); text-decoration: none; letter-spacing: .04em; } .abmail:hover { text-decoration: underline; }
   .ablinks { display: flex; align-items: center; gap: 14px; margin-left: auto; } .ablinks a { display: block; line-height: 0; border-radius: 8px; transition: transform .15s, filter .15s; } .ablinks a:hover, .ablinks a:focus-visible { transform: translateY(-1px); filter: drop-shadow(0 0 7px rgba(94,223,229,.55)); outline: none; }
   @media (max-width: 560px) { #aboutWin { padding: 14px 16px; } .ablinks { flex-wrap: wrap; justify-content: flex-end; gap: 8px 12px; } .ablinks img { height: 26px !important; } #abEngine img { height: 30px !important; } }
@@ -299,7 +307,7 @@
   <div class="abhead"><img src="/brand/about-caeliscope-word.svg" alt="Caeliscope" draggable="false"></div>
   <div id="abBody"></div>
   <div class="abfoot">
-    <a id="abContact" class="abmail" href="mailto:hermeticalabs.dev@proton.me"></a>
+    <span class="abside"><a id="abContact" class="abmail" href="mailto:hermeticalabs.dev@proton.me"></a><button id="abInstall" class="abinst" type="button" hidden></button></span>
     <span class="ablinks">
       <a id="abRepo" href="https://github.com/HermeticaLabs/Caeliscope" target="_blank" rel="noopener"><img src="/brand/about-github.png" alt="" draggable="false"></a>
       <a id="abEngine" href="https://github.com/hermeticalabs/caelis-engine" target="_blank" rel="noopener"><img src="/brand/about-engine.png" alt="" draggable="false"></a>

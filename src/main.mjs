@@ -285,21 +285,21 @@ let goal = null; // destino suave de la cámara
 
 // ── Seguimiento: la cámara acompaña a un cuerpo celeste (o estrella) mientras pasa el tiempo,  ──
 let track = null, trackLocked = false;              // { kind: 'body', key } | { kind: 'star', i }; locked = ya centrado: se pega al objeto sin retraso
-const sameObj = (a, b) => !!a && !!b && a.kind === b.kind && (a.kind === 'body' ? a.key === b.key : a.i === b.i);
+const sameObj = (a, b) => !!a && !!b && a.kind === b.kind && (a.kind === 'body' ? a.key === b.key : a.kind === 'moon' ? a.key === b.key && a.planet === b.planet : a.i === b.i);
 function trackTarget() {                            // posición actual (az, alt) del objeto seguido
   if (!track || !last || !rotM) return null;
-  if (track.kind === 'body') { const b = last[track.key]; return b && { az: b.az_deg, alt: b.alt_apparent_deg }; }
+  if (track.kind === 'body' || track.kind === 'moon') { const b = last[track.kind === 'moon' ? track.planet : track.key]; return b && { az: b.az_deg, alt: b.alt_apparent_deg }; }   // una luna se sigue con su planeta
   return horizontalOf(rotM, starVec(track.i));
 }
 function updateTrackUI() {
   const chip = $('trackChip'); chip.hidden = !track;
   if (track) {
-    const tg = trackTarget(), name = track.kind === 'body' ? bodyName(track.key) : (starNameOf(track.i) || T('chip.star'));
+    const tg = trackTarget(), name = track.kind === 'body' ? bodyName(track.key) : track.kind === 'moon' ? moonLabel(track) : (starNameOf(track.i) || T('chip.star'));
     $('trackName').textContent = T('chip.followingN', { name }) + (tg && tg.alt < 0 ? T('chip.below') : '');
   }
   $('cTrack').setAttribute('aria-pressed', sameObj(track, sel));
 }
-function startTrack(obj) { track = obj ? { kind: obj.kind, key: obj.key, i: obj.i } : null; trackLocked = false; goal = null; updateTrackUI(); }
+function startTrack(obj) { track = obj ? { kind: obj.kind, key: obj.key, i: obj.i, planet: obj.planet } : null; trackLocked = false; goal = null; updateTrackUI(); }
 function stopTrack() { if (track) { track = null; updateTrackUI(); } }
 
 // ── Líneas: constelaciones, cuadrículas ──
@@ -363,18 +363,30 @@ function drawPathLabels(at, atV) {
   }
 }
 // Satélites naturales (plugins): se dibujan alrededor de su planeta cuando el zoom los separa; nunca entran en estelas, geometrías ni rosetas.
+// Proyector de un planeta: desplazamiento angular (″ este, ″ norte) respecto de su centro -> pantalla. Lo comparten el dibujo, la selección y la mira.
+function moonProjector(pl, atV) {
+  const b = last[pl.planet], vM = dirFromAltAz(b.alt_apparent_deg, b.az_deg), E0 = equatorialVector(b.ra_deg, b.dec_deg), a = b.ra_deg * D2R, d = b.dec_deg * D2R, R0 = rotVec(rotM, E0);
+  const east = [-Math.sin(a), Math.cos(a), 0], north = [-Math.cos(a) * Math.sin(d), -Math.sin(a) * Math.sin(d), Math.cos(d)];
+  return (dx, dy) => {
+    const ex = dx / 206264.806, ey = dy / 206264.806, E1 = [0, 1, 2].map((i) => E0[i] + ex * east[i] + ey * north[i]), R1 = rotVec(rotM, E1);
+    const v = [vM[0] + R1[0] - R0[0], vM[1] + R1[1] - R0[1], vM[2] + R1[2] - R0[2]], n = Math.hypot(...v); return atV([v[0] / n, v[1] / n, v[2] / n]);
+  };
+}
+const moonRadiusPx = (pl, def) => Math.max(2.4, (def.meanRadiusKm / pl.radiusKm) * (bodyPx[pl.planet] || 0));   // radio real de la luna en pantalla (mínimo un punto)
+const projectVisible = (v) => (hiddenDir(v) ? null : project(v));
+const moonLabel = (o) => { const pl = pluginFor(o.planet), def = pl && pl.moons.find((q) => q.key === o.key); return def ? moonName(def, getLang()) : o.key; };
+function moonSel() {                                                                   // datos vivos de la luna seleccionada, o null si ya no se muestran lunas
+  if (!sel || sel.kind !== 'moon' || !ui.mn || !last || !rotM) return null;
+  const pl = pluginFor(sel.planet), m = pl && moonsFor(sel.planet); if (!m) return null;
+  const s = m.list.find((q) => q.key === sel.key), def = pl.moons.find((q) => q.key === sel.key); return s && def ? { pl, def, s, b: last[sel.planet] } : null;
+}
+// Satélites naturales (plugins): se dibujan alrededor de su planeta cuando el zoom los separa; nunca entran en estelas, geometrías ni rosetas.
 function drawMoons(atV) {
   for (const pl of SAT_PLUGINS) {
     const b = last[pl.planet]; if (!b || (bodyPx[pl.planet] || 0) < 4) continue;
     const m = moonsFor(pl.planet); if (!m) continue;
-    const vM = dirFromAltAz(b.alt_apparent_deg, b.az_deg), E0 = equatorialVector(b.ra_deg, b.dec_deg), a = b.ra_deg * D2R, d = b.dec_deg * D2R, R0 = rotVec(rotM, E0);
-    const east = [-Math.sin(a), Math.cos(a), 0], north = [-Math.cos(a) * Math.sin(d), -Math.sin(a) * Math.sin(d), Math.cos(d)];
     octx.font = `${11 * tsNow()}px Georgia`; octx.textAlign = 'left';
-    const at2 = (dx, dy) => {                                                           // desplazamiento angular (″ este, ″ norte) respecto del centro del planeta -> pantalla
-      const ex = dx / 206264.806, ey = dy / 206264.806, E1 = [0, 1, 2].map((i) => E0[i] + ex * east[i] + ey * north[i]), R1 = rotVec(rotM, E1);
-      const v = [vM[0] + R1[0] - R0[0], vM[1] + R1[1] - R0[1], vM[2] + R1[2] - R0[2]], n = Math.hypot(...v); return atV([v[0] / n, v[1] / n, v[2] / n]);
-    };
-    const rpx = (def) => Math.max(2.4, (def.meanRadiusKm / pl.radiusKm) * (bodyPx[pl.planet] || 0));   // radio real de la luna en pantalla (mínimo un punto)
+    const at2 = moonProjector(pl, atV), rpx = (def) => moonRadiusPx(pl, def);
     for (const s of m.list) {                                                           // sombras de las lunas sobre el disco del planeta
       if (!s.shadow || s.occulted) continue;
       const def = pl.moons.find((q) => q.key === s.key), c = at2(s.shadow.dxArcsec, s.shadow.dyArcsec); if (!c) continue;
@@ -441,7 +453,7 @@ function drawLabels() {
   if (ui.mn) drawMoons(atV);
   const sp = sel && selScreen();
   if (sp) { // mira discreta: cuatro cuadritos (arriba, abajo, izquierda, derecha) alrededor del objeto
-    const R = sel.kind === 'body' ? Math.max(14, (bodyPx[sel.key] || 0) + 8) : 14, q = 5; octx.strokeStyle = 'rgba(255,255,255,0.85)'; octx.lineWidth = 1;
+    const ms0 = sel.kind === 'moon' ? moonSel() : null, R = sel.kind === 'body' ? Math.max(14, (bodyPx[sel.key] || 0) + 8) : ms0 ? Math.max(9, moonRadiusPx(ms0.pl, ms0.def) + 6) : 14, q = 5; octx.strokeStyle = 'rgba(255,255,255,0.85)'; octx.lineWidth = 1;
     for (const [dx, dy] of [[0, -R], [0, R], [-R, 0], [R, 0]]) octx.strokeRect(Math.round(sp[0] + dx - q / 2) + 0.5, Math.round(sp[1] + dy - q / 2) + 0.5, q, q);
   }
 }
@@ -454,16 +466,22 @@ function project(v) { const p = scr(v); return p && toCanvas(p); }
 function selScreen() {
   if (!sel || !last || !rotM) return null;
   if (sel.kind === 'body') { const b = last[sel.key]; return project(dirFromAltAz(b.alt_apparent_deg, b.az_deg)); }
+  if (sel.kind === 'moon') { const m = moonSel(); return m ? moonProjector(m.pl, project)(m.s.dxArcsec, m.s.dyArcsec) : null; }
   return project(rotVec(rotM, starVec(sel.i)));
 }
 function pick(px, py) { // el objeto más cercano al clic: primero cuerpos, luego estrellas visibles
   if (!last || !rotM) return null;
   let best = null;
-  const tryIt = (item, v, rad, bias) => {
-    const s = project(v); if (!s) return;
+  const cand = (item, s, rad, bias) => {
     const d = Math.hypot(s[0] - px, s[1] - py);
     if (d <= rad && (!best || d - bias < best.sc)) best = { ...item, sc: d - bias };
   };
+  const tryIt = (item, v, rad, bias) => { const s = project(v); if (s) cand(item, s, rad, bias); };
+  if (ui.mn) for (const pl of SAT_PLUGINS) {                                           // lunas: ganan al planeta cuando el clic cae sobre ellas
+    const b = last[pl.planet]; if (!b || (bodyPx[pl.planet] || 0) < 4 || hiddenAltAz(b.alt_apparent_deg, b.az_deg, 0.3)) continue;
+    const m = moonsFor(pl.planet); if (!m) continue; const at2 = moonProjector(pl, projectVisible);
+    for (const q of m.list) { if (q.occulted || q.ringCover > 0.9) continue; const def = pl.moons.find((x) => x.key === q.key), c = at2(q.dxArcsec, q.dyArcsec); if (c) cand({ kind: 'moon', planet: pl.planet, key: q.key }, c, Math.max(12, moonRadiusPx(pl, def) + 8), 40); }
+  }
   for (const k of BODY_KEYS) {
     const b = last[k];
     if (b && !hiddenAltAz(b.alt_apparent_deg, b.az_deg, 0.3)) tryIt({ kind: 'body', key: k }, dirFromAltAz(b.alt_apparent_deg, b.az_deg), Math.max(28, (bodyPx[k] || 0) + 6), 14);
@@ -477,7 +495,7 @@ function pick(px, py) { // el objeto más cercano al clic: primero cuerpos, lueg
       tryIt({ kind: 'star', i }, v, 15, (6.5 - starCat[i][2]) * 1.2);
     }
   }
-  return best && { kind: best.kind, key: best.key, i: best.i };
+  return best && { kind: best.kind, key: best.key, i: best.i, planet: best.planet };
 }
 let starInfo = null; // por estrella: [nombre, número Hipparcos, tipo 0 propio / 1 Bayer-Flamsteed / 2 solo HIP]
 fetch(`${BASE}star-names.json`).then((r) => r.json()).then((a) => { starInfo = a; dirty = true; refreshCard(); updateTrackUI(); }).catch(() => console.info('Sin /star-names.json: solo las estrellas con nombre de la lista corta.'));
@@ -509,11 +527,11 @@ function ensureRS() { // orto y ocaso de las próximas 26 h, calculados con Cael
     for (let k = 0; k < n; k++) alts.push(horizontalOf(skyRotation(lstNow + (360.98564736629 * k * step) / 86400000, obs.lat, tNow), e).alt);
     rs = riseSetFromSamples(alts, t0, step, -0.5667); return;
   }
-  const h0 = sel.key === 'Sol' || sel.key === 'Luna' ? -0.2666 : 0; // radio del disco; la altura aparente ya incluye refracción
+  const bk = sel.kind === 'moon' ? sel.planet : sel.key, h0 = bk === 'Sol' || bk === 'Luna' ? -0.2666 : 0; // radio del disco; la altura aparente ya incluye refracción
   let k = 0;
   (function chunk() {
     if (rsKey !== key) return;
-    for (let c = 0; c < 15 && k < n; c++, k++) alts.push(snapAt(t0 + k * step).bodies[sel.key].alt_apparent_deg);
+    for (let c = 0; c < 15 && k < n; c++, k++) alts.push(snapAt(t0 + k * step).bodies[bk].alt_apparent_deg);
     if (k < n) setTimeout(chunk, 0); else { rs = riseSetFromSamples(alts, t0, step, h0); refreshCard(); }
   })();
 }
@@ -542,6 +560,17 @@ function describe() {
     rows.push([T('row.state'), T(b.alt_apparent_deg >= 0 ? 'row.up' : 'row.down')]);
     const ms = ui.mn ? moonsFor(sel.key) : null;
     if (ms) for (const s of ms.list) rows.push([moonName(ms.pl.moons.find((q) => q.key === s.key), getLang()), `${s.sepArcsec.toFixed(1)}″ ${T(s.dxArcsec >= 0 ? 'sat.east' : 'sat.west')} · ${T(s.occulted ? 'sat.occulted' : s.ringCover > 0.9 ? 'sat.rings' : s.transit ? 'sat.transit' : s.eclipsed ? 'sat.eclipsed' : 'sat.visible')}${s.shadow && !s.occulted ? ' · ' + T('sat.shadow') : ''}`]);
+  } else if (sel.kind === 'moon') {
+    const m = moonSel();
+    if (m) {
+      const { pl, def, s, b } = m, el = def.elements, rKm = Math.hypot(s.xKm, s.yKm, s.zKm), asec = 2 * def.meanRadiusKm / (b.dist_au * 149597870.7) * 206264.806;
+      title = moonName(def, getLang()); wiki = def.name.en; sub = T('sub.moonOf', { planet: bodyName(sel.planet) });
+      rows.push([T('row.mag'), fmtMag(def.mag)], [T('row.apparent'), `${asec.toFixed(asec < 1 ? 3 : 2)}″`], [T('row.planetDist'), `${Math.round(rKm).toLocaleString(locale())} km · ${(rKm / pl.radiusKm).toFixed(1)} R`]);
+      rows.push([T('row.sep'), `${s.sepArcsec.toFixed(1)}″ ${T(s.dxArcsec >= 0 ? 'sat.east' : 'sat.west')}`]);
+      rows.push([T('row.period'), `${(360 / el.nSid).toFixed(el.nSid > 20 ? 3 : 2)} ${T('unit.d')} · ${T(el.i > 90 ? 'sat.retro' : 'sat.prograde')}`]);
+      rows.push([T('row.radec'), `${fmtHMS((b.ra_deg + s.dxArcsec / 3600 / Math.cos(b.dec_deg * D2R) + 360) % 360)}  ${fmtDMS(b.dec_deg + s.dyArcsec / 3600)}`], [T('row.azalt'), `${fmtDMS(b.az_deg, false, 3)}  ${fmtDMS(b.alt_apparent_deg)}`]);
+      rows.push([T('row.state'), T(s.occulted ? 'sat.occulted' : s.ringCover > 0.9 ? 'sat.rings' : s.transit ? 'sat.transit' : s.eclipsed ? 'sat.eclipsed' : 'sat.visible') + (s.shadow ? ' · ' + T('sat.shadow') : '')], [T('row.vis'), T(b.alt_apparent_deg >= 0 ? 'row.up' : 'row.down')]);
+    } else { title = moonLabel(sel); sub = T('sub.moonOf', { planet: bodyName(sel.planet) }); }
   } else {
     const s = starCat[sel.i], e = starVec(sel.i), name = starNameOf(sel.i);
     const info = starInfo && starInfo[sel.i], hip = info && info[1];
@@ -567,6 +596,11 @@ function currentExport() {
   if (!sel || !lastSnap || !rotM) return null;
   const observer = { lat: obs.lat, lon: obs.lon };
   if (sel.kind === 'body') return buildExport({ kind: 'body', key: sel.key, name: bodyName(sel.key, 'en'), data: lastSnap.bodies[sel.key], snap: lastSnap, observer, extra: sel.key === 'Luna' ? lastSnap.luna : (() => { const ms = ui.mn ? moonsFor(sel.key) : null; return ms ? { satellites: { plugin: ms.pl.id, model: ms.pl.model, moons: ms.list.map((s) => ({ key: s.key, east_arcsec: +s.dxArcsec.toFixed(3), north_arcsec: +s.dyArcsec.toFixed(3), separation_arcsec: +s.sepArcsec.toFixed(3), line_of_sight_km: Math.round(s.zKm), transit: s.transit, occulted: s.occulted, behind_rings_opacity: s.ringCover, in_planet_shadow: s.eclipsed, shadow_on_disc: !!s.shadow })) } } : undefined; })() });
+  if (sel.kind === 'moon') {
+    const m = moonSel(); if (!m) return null; const { pl, def, s } = m;
+    return buildExport({ kind: 'moon', key: sel.key, name: def.name.en, snap: lastSnap, observer, data: { planet: sel.planet, east_arcsec: +s.dxArcsec.toFixed(3), north_arcsec: +s.dyArcsec.toFixed(3), separation_arcsec: +s.sepArcsec.toFixed(3), position_km: [s.xKm, s.yKm, s.zKm].map(Math.round), transit: s.transit, occulted: s.occulted, in_planet_shadow: s.eclipsed, shadow_on_disc: !!s.shadow, behind_rings_opacity: s.ringCover, mean_radius_km: def.meanRadiusKm, magnitude: def.mag, orbit: def.elements },
+      extra: { plugin: pl.id, model: pl.model, planet_position: lastSnap.bodies[sel.planet] } });
+  }
   const s = starCat[sel.i], info = starInfo && starInfo[sel.i], h = horizontalOf(rotM, starVec(sel.i));
   return buildExport({ kind: 'star', key: 'star:' + sel.i, name: starName(starNameOf(sel.i), 'en') || (info && info[1] ? `HIP ${info[1]}` : `star ${sel.i}`), snap: lastSnap, observer,
     data: { ra_j2000_deg: s[0], dec_j2000_deg: s[1], magnitude: s[2], bv_index: s[3], hip: info ? info[1] : null, az_deg: h.az, alt_geometric_deg: h.alt, lst_deg: lastSnap.meta.sidereal.lst_deg } });
@@ -599,6 +633,7 @@ $('jDown').onclick = () => {
 function refreshCard() {
   const card = $('card');
   updatePaths();
+  if (sel && sel.kind === 'moon' && !moonSel()) sel = null;          // si ya no se muestran lunas, la ficha de la luna se cierra
   if (!sel || !last || !rotM) { card.hidden = true; return; }
   if (Math.abs(speed) < 60) ensureRS();
   const d = describe();
@@ -609,7 +644,7 @@ function refreshCard() {
   if (d.wiki) w.href = `https://${getLang()}.wikipedia.org/w/index.php?search=` + encodeURIComponent(d.wiki);
   const cp = $('cPath'), pc = rgbCss(colorOf(sel));
   cp.style.setProperty('--pc', pc); cp.setAttribute('aria-pressed', paths.has(pathId(sel)));
-  $('cZoom').hidden = sel.kind !== 'body';
+  $('cZoom').hidden = sel.kind === 'star'; cp.hidden = sel.kind === 'moon';
   const ca = $('cAll'); ca.hidden = sel.kind !== 'star'; ca.style.setProperty('--pc', rgbCss(STAR_PATH)); ca.setAttribute('aria-pressed', trails.on); ca.lastChild.textContent = trailLabel();
   $('cJson').hidden = !ui.js; if (!ui.js) jsonOpen = false;
   $('cJson').setAttribute('aria-pressed', jsonOpen); showFace(); card.hidden = false; updateTrackUI();
@@ -617,7 +652,7 @@ function refreshCard() {
 $('cClose').onclick = () => { sel = null; rsKey = ''; rs = null; refreshCard(); updateTrackUI(); };
 const toggleTrack = () => { if (!sel) return; if (sameObj(track, sel)) stopTrack(); else startTrack(sel); };
 $('cTrack').onclick = toggleTrack;
-$('cZoom').onclick = () => { if (sel) zoomTo(sel); };
+$('cZoom').onclick = () => { if (sel) zoomTo(sel.kind === 'moon' ? { kind: 'body', key: sel.planet } : sel); };
 $('trackStop').onclick = stopTrack;
 
 
@@ -633,7 +668,7 @@ const PATH_COLORS = { Sol: [1, 0.82, 0.24], Luna: [0.86, 0.9, 1], Mercurio: [0.7
 const STAR_PATH = [0.72, 0.82, 1];
 const rgbCss = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
 const paths = new Map();                                    // id -> { obj, col, past, fut, key, pts, splitAt }
-const pathId = (o) => (o.kind === 'body' ? o.key : 'star:' + o.i);
+const pathId = (o) => (o.kind === 'body' ? o.key : o.kind === 'moon' ? 'moon:' + o.planet + ':' + o.key : 'star:' + o.i);
 const colorOf = (o) => (o.kind === 'body' ? PATH_COLORS[o.key] || [1, 0.82, 0.35] : STAR_PATH);
 const trails = { on: false, mode: 0, mesh: null, key: '', live: null, liveKey: '', t0: 0 };   // trayectorias de todas las estrellas brillantes; mode: 0 apagado, 1 en vivo, 2 ciclo completo
 const trailLabel = () => T(['card.all', 'card.allLive', 'card.allCycle'][trails.mode]);
@@ -1026,7 +1061,8 @@ cv.addEventListener('pointerup', (e) => {
 cv.addEventListener('dblclick', (e) => {            // doble clic sobre un objeto: lo selecciona y lo sigue
   const p = pick(e.clientX, e.clientY); if (!p) return;
   sel = p; rsKey = ''; rs = null; startTrack(p); refreshCard();
-  if (p.kind === 'body' && view.fov > zoomFovFor(p.key) * 1.2) goal = { az: last[p.key].az_deg, alt: last[p.key].alt_apparent_deg, fov: zoomFovFor(p.key) };
+  if (p.kind === 'moon') { const m = moonSel(); if (m) { const f = clamp(Math.max(zoomFovFor(p.planet), 2.6 * m.s.sepArcsec / 3600), MIN_FOV, 60); if (view.fov > f * 1.2) goal = { az: m.b.az_deg, alt: m.b.alt_apparent_deg, fov: f }; } }
+  else if (p.kind === 'body' && view.fov > zoomFovFor(p.key) * 1.2) goal = { az: last[p.key].az_deg, alt: last[p.key].alt_apparent_deg, fov: zoomFovFor(p.key) };
 });
 cv.addEventListener('pointercancel', (e) => { ptrs.delete(e.pointerId); down = null; });
 cv.addEventListener('pointermove', (e) => {
@@ -1186,7 +1222,7 @@ addEventListener('keydown', (e) => {
   if (e.key === 'f' || e.key === 'F') toggleFS();
   if (e.key === 'n' || e.key === 'N') toggleNight();
   if (e.key === 't' || e.key === 'T') toggleTrack();
-  if ((e.key === 'c' || e.key === 'C') && sel) { stopTrack(); const t = sel.kind === 'body' ? { az: last[sel.key].az_deg, alt: last[sel.key].alt_apparent_deg } : horizontalOf(rotM, starVec(sel.i)); goal = { az: t.az, alt: clamp(t.alt, -90, 90) }; }
+  if ((e.key === 'c' || e.key === 'C') && sel) { stopTrack(); const t = sel.kind === 'body' || sel.kind === 'moon' ? { az: last[sel.kind === 'moon' ? sel.planet : sel.key].az_deg, alt: last[sel.kind === 'moon' ? sel.planet : sel.key].alt_apparent_deg } : horizontalOf(rotM, starVec(sel.i)); goal = { az: t.az, alt: clamp(t.alt, -90, 90) }; }
   if (e.key === ' ') {
     e.preventDefault();
     togglePause();
@@ -1457,7 +1493,13 @@ $('tMoons').onclick = () => { ui.mn = !ui.mn; saveUi(); applyUi(); refreshCard()
 $('tPL').onclick = () => { ui.pl = !ui.pl; saveUi(); applyUi(); };
 $('tJson').onclick = () => { ui.js = !ui.js; saveUi(); applyUi(); refreshCard(); };
 $('panelOp').oninput = (e) => { ui.op = clampOpacity(+e.target.value / 100); saveUi(); applyUi(); };
-function renderAbout() { const A = ABOUT[getLang()] || ABOUT.en; $('abTitle').textContent = A.title; $('abClose').setAttribute('aria-label', A.close); $('abClose').title = A.close; $('abBody').innerHTML = aboutHtml(getLang()); $('abContact').textContent = A.contact; for (const [id, k] of [['abRepo', 'altRepo'], ['abEngine', 'altEngine'], ['abHerm', 'altHerm']]) { const e = $(id); e.title = A[k]; e.setAttribute('aria-label', A[k]); } }
+// PWA: se registra el service worker (solo en producción) y se ofrece instalar la app cuando el navegador lo permite.
+let installEvt = null;
+if ('serviceWorker' in navigator && import.meta.env?.PROD) addEventListener('load', () => navigator.serviceWorker.register(`${BASE}sw.js`).catch(() => { /* sin service worker: la app funciona igual, solo en línea */ }));
+addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvt = e; $('abInstall').hidden = false; });
+addEventListener('appinstalled', () => { installEvt = null; $('abInstall').hidden = true; });
+$('abInstall').onclick = async () => { if (!installEvt) return; installEvt.prompt(); try { await installEvt.userChoice; } catch { /* cerrado */ } installEvt = null; $('abInstall').hidden = true; };
+function renderAbout() { const A = ABOUT[getLang()] || ABOUT.en; $('abTitle').textContent = A.title; $('abClose').setAttribute('aria-label', A.close); $('abClose').title = A.close; $('abBody').innerHTML = aboutHtml(getLang()); $('abContact').textContent = A.contact; $('abInstall').textContent = A.install; for (const [id, k] of [['abRepo', 'altRepo'], ['abEngine', 'altEngine'], ['abHerm', 'altHerm']]) { const e = $(id); e.title = A[k]; e.setAttribute('aria-label', A[k]); } }
 let aboutFrom = null;
 function showAbout(on) { $('aboutWin').hidden = !on; $('aboutVeil').hidden = !on; if (on) { aboutFrom = document.activeElement; renderAbout(); $('abClose').focus(); } else if (aboutFrom && aboutFrom.focus) aboutFrom.focus(); }
 $('abClose').onclick = () => showAbout(false); $('aboutVeil').onclick = () => showAbout(false);

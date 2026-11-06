@@ -21,3 +21,9 @@ test('nombre de archivo seguro con el instante', () => {
   assert.equal(fileName(o), 'caeliscope-jupiter-20251120-235850.json');
   assert.equal(fileName({ object: { id: 'star:3', name: 'Alpha/β Ori' }, _meta: {} }), 'caeliscope-alpha-ori.json');
 });
+
+test('JSON de una luna: tipo moon, origen del plugin y nombre en inglés', async () => {
+  const { buildExport, ORIGIN } = await import('../src/snapshot-json.mjs');
+  const o = buildExport({ kind: 'moon', key: 'Io', name: 'Io', data: { planet: 'Jupiter' }, snap: { meta: {} }, observer: { lat: 0, lon: 0 } });
+  assert.equal(o.object.kind, 'moon'); assert.equal(o._meta.data_origin, ORIGIN.moon); assert.ok(/plugin/.test(o._meta.data_origin));
+});
