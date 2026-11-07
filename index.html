@@ -85,6 +85,7 @@
   #abBody h3 { margin: 14px 0 4px; font-size: calc(11px * var(--ts)); font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--oro); }
   #abBody p { margin: 0 0 7px; } #abBody a { color: var(--cian); }
   .abfoot { flex: none; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(220, 180, 80, .22); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; }
+  #cPort { display: block; margin: 2px auto 8px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.05), transparent 72%); }
   .abside { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; } .abinst { padding: 3px 12px; font-size: calc(12px * var(--ts)); border-color: rgba(94,223,229,.45); color: var(--cian); cursor: pointer; } .abinst:hover { background: rgba(94,223,229,.12); }
   .abmail { color: var(--cian); font-size: calc(13px * var(--ts)); text-decoration: none; letter-spacing: .04em; } .abmail:hover { text-decoration: underline; }
   .ablinks { display: flex; align-items: center; gap: 14px; margin-left: auto; } .ablinks a { display: block; line-height: 0; border-radius: 8px; transition: transform .15s, filter .15s; } .ablinks a:hover, .ablinks a:focus-visible { transform: translateY(-1px); filter: drop-shadow(0 0 7px rgba(94,223,229,.55)); outline: none; }
@@ -336,6 +337,7 @@
 <div id="card" class="hud skyhud" data-min="card" hidden>
   <div class="card-head"><div><div id="cTitle"></div><small id="cSub"></small></div><div class="card-btns"><button id="cTrack" aria-pressed="false" data-i18n="card.follow" data-i18n-title="card.followTitle"></button><button id="cZoom" hidden data-i18n="card.zoom" data-i18n-title="card.zoomTitle"></button><button id="cPath" aria-pressed="false" data-i18n-title="card.pathTitle"><span class="pdot"></span><span data-i18n="card.path"></span></button><button id="cAll" aria-pressed="false" hidden data-i18n-title="card.allTitle"><span class="pdot"></span><span id="cAllT"></span></button><button id="cJson" class="mono" hidden aria-pressed="false" data-i18n-title="card.json">&lt;/&gt;</button><button class="minbtn" id="cMin" type="button">–</button><button id="cClose" data-i18n-aria="card.close">✕</button></div></div>
   <div id="cFace">
+    <canvas id="cPort" hidden aria-hidden="true"></canvas>
     <table id="cRows"></table>
     <a id="cWiki" target="_blank" rel="noopener" hidden data-i18n="card.wiki"></a>
     <div id="cJsonView" hidden>

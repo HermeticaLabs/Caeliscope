@@ -19,6 +19,8 @@ import { Globe } from './globe.mjs';
 import { createLru } from './lru.mjs';
 import { moonsOnSky } from './satellites/sky.mjs';
 import { SAT_PLUGINS, pluginFor, moonName } from './satellites/index.mjs';
+import { createMoonRenderer } from './satellites/render.mjs';
+import { moonFrame, lonLatOf, illuminatedFraction } from './satellites/shape.mjs';
 import { CENTER, PRESETS, project as proj3, orbit, zoomBy, autoZ, extent } from './view3d.mjs';
 import { slideTo, findFree } from './winpos.mjs';
 import { solarShadow, lunarShadow, shadowMode } from './shadow.mjs';
@@ -363,6 +365,28 @@ function drawPathLabels(at, atV) {
   }
 }
 // Satélites naturales (plugins): se dibujan alrededor de su planeta cuando el zoom los separa; nunca entran en estelas, geometrías ni rosetas.
+// Dibujo de lunas con forma, fase y textura (un solo renderizador WebGL compartido). Si WebGL no está disponible, se dibujan como discos.
+let moonR = null, moonRFailed = false;
+function getMoonR() {
+  if (moonR || moonRFailed) return moonR;
+  try { moonR = createMoonRenderer(BASE); moonR.setOnTexture(() => { dirty = true; refreshCard(); }); } catch { moonRFailed = true; }
+  return moonR;
+}
+const frameOf = (pl, def) => moonFrame(pl, def, last[pl.planet], last.Sol, lastSnap.meta.jd_tt);
+function moonSprite(g, pl, def, s, at2, c, r, dpr) {                    // copia la luna al cielo con la orientación que tiene en pantalla (norte y este del cielo)
+  const R = getMoonR(); if (!R) return false;
+  const f = frameOf(pl, def), half = r * Math.max(f.shape.a, f.shape.b, f.shape.c) / def.meanRadiusKm;
+  const p0 = at2(s.dxArcsec, s.dyArcsec), pe = at2(s.dxArcsec + 5, s.dyArcsec), pn = at2(s.dxArcsec, s.dyArcsec + 5); if (!p0 || !pe || !pn) return false;
+  const u = (p) => { const x = p[0] - p0[0], y = p[1] - p0[1], n = Math.hypot(x, y) || 1; return [x / n, y / n]; }, e = u(pe), n = u(pn);
+  const cvs = R.draw(def.key, f, { eclipsed: s.eclipsed, transit: s.transit }, Math.min(512, 2 * half * dpr));
+  g.save(); g.translate(c[0], c[1]); g.transform(-e[0], -e[1], -n[0], -n[1], 0, 0); g.drawImage(cvs, -half, -half, 2 * half, 2 * half); g.restore(); return true;   // la imagen tiene el oeste a la derecha y el sur abajo
+}
+function drawPortrait() {                                                // retrato de la ficha: la luna como se ve desde la Tierra, con el norte celeste arriba
+  const cv = $('cPort'), m = sel && sel.kind === 'moon' ? moonSel() : null, R = m && getMoonR();
+  cv.hidden = !R; if (!R) return;
+  const css = 176, dpr = Math.min(2, devicePixelRatio || 1); if (cv.width !== css * dpr) { cv.width = cv.height = css * dpr; cv.style.width = cv.style.height = css + 'px'; }
+  const g = cv.getContext('2d'); g.clearRect(0, 0, cv.width, cv.height); g.drawImage(R.draw(m.def.key, frameOf(m.pl, m.def), { eclipsed: m.s.eclipsed, transit: false }, cv.width), 0, 0);
+}
 // Proyector de un planeta: desplazamiento angular (″ este, ″ norte) respecto de su centro -> pantalla. Lo comparten el dibujo, la selección y la mira.
 function moonProjector(pl, atV) {
   const b = last[pl.planet], vM = dirFromAltAz(b.alt_apparent_deg, b.az_deg), E0 = equatorialVector(b.ra_deg, b.dec_deg), a = b.ra_deg * D2R, d = b.dec_deg * D2R, R0 = rotVec(rotM, E0);
@@ -396,8 +420,10 @@ function drawMoons(atV) {
       if (s.occulted || s.ringCover > 0.9) continue;
       const def = pl.moons.find((q) => q.key === s.key), c = at2(s.dxArcsec, s.dyArcsec); if (!c) continue; const r = rpx(def);
       octx.globalAlpha = 1 - 0.6 * (s.ringCover || 0);                                  // detrás de un anillo translúcido se ve atenuada
-      octx.fillStyle = s.eclipsed ? 'rgba(150,70,50,.9)' : s.transit ? 'rgba(60,58,62,.92)' : (def.color || '#e1e1d7');
-      octx.beginPath(); octx.arc(c[0], c[1], r, 0, 6.2832); octx.fill(); octx.strokeStyle = 'rgba(0,0,0,.6)'; octx.lineWidth = 1; octx.stroke();
+      if (!(r >= 5 && moonSprite(octx, pl, def, s, at2, c, r, Math.min(devicePixelRatio || 1, 2)))) {   // pequeña o sin WebGL: disco liso
+        octx.fillStyle = s.eclipsed ? 'rgba(150,70,50,.9)' : s.transit ? 'rgba(60,58,62,.92)' : (def.color || '#e1e1d7');
+        octx.beginPath(); octx.arc(c[0], c[1], r, 0, 6.2832); octx.fill(); octx.strokeStyle = 'rgba(0,0,0,.6)'; octx.lineWidth = 1; octx.stroke();
+      }
       if (showNames || (bodyPx[pl.planet] || 0) >= 10) { octx.fillStyle = 'rgba(205,200,255,.9)'; octx.fillText(moonName(def, getLang()), c[0] + r + 5, c[1] - 6); }
       octx.globalAlpha = 1;
     }
@@ -566,6 +592,9 @@ function describe() {
       const { pl, def, s, b } = m, el = def.elements, rKm = Math.hypot(s.xKm, s.yKm, s.zKm), asec = 2 * def.meanRadiusKm / (b.dist_au * 149597870.7) * 206264.806;
       title = moonName(def, getLang()); wiki = def.name.en; sub = T('sub.moonOf', { planet: bodyName(sel.planet) });
       rows.push([T('row.mag'), fmtMag(def.mag)], [T('row.apparent'), `${asec.toFixed(asec < 1 ? 3 : 2)}″`], [T('row.planetDist'), `${Math.round(rKm).toLocaleString(locale())} km · ${(rKm / pl.radiusKm).toFixed(1)} R`]);
+      const fr = frameOf(pl, def), sh = fr.shape, se = lonLatOf(fr, fr.toObs), triax = Math.max(sh.a, sh.b, sh.c) / Math.min(sh.a, sh.b, sh.c) > 1.01;
+      if (triax) rows.push([T('row.shape'), `${(2 * sh.a).toFixed(sh.a < 100 ? 1 : 0)} × ${(2 * sh.b).toFixed(sh.b < 100 ? 1 : 0)} × ${(2 * sh.c).toFixed(sh.c < 100 ? 1 : 0)} km`]);
+      rows.push([T('row.phase'), `${(illuminatedFraction(fr) * 100).toFixed(0)}%`], [T('row.subEarth'), sh.spinDays ? '—' : `${se.lonE.toFixed(0)}°E ${se.lat >= 0 ? '+' : ''}${se.lat.toFixed(0)}°`]);
       rows.push([T('row.sep'), `${s.sepArcsec.toFixed(1)}″ ${T(s.dxArcsec >= 0 ? 'sat.east' : 'sat.west')}`]);
       rows.push([T('row.period'), `${(360 / el.nSid).toFixed(el.nSid > 20 ? 3 : 2)} ${T('unit.d')} · ${T(el.i > 90 ? 'sat.retro' : 'sat.prograde')}`]);
       rows.push([T('row.radec'), `${fmtHMS((b.ra_deg + s.dxArcsec / 3600 / Math.cos(b.dec_deg * D2R) + 360) % 360)}  ${fmtDMS(b.dec_deg + s.dyArcsec / 3600)}`], [T('row.azalt'), `${fmtDMS(b.az_deg, false, 3)}  ${fmtDMS(b.alt_apparent_deg)}`]);
@@ -640,6 +669,7 @@ function refreshCard() {
   $('cTitle').textContent = d.title; $('cSub').textContent = d.sub;
   const t = $('cRows'); t.replaceChildren();
   for (const [a, b] of d.rows) { const tr = t.insertRow(); tr.insertCell().textContent = a; tr.insertCell().textContent = b; }
+  drawPortrait();
   const w = $('cWiki'); w.hidden = !d.wiki;
   if (d.wiki) w.href = `https://${getLang()}.wikipedia.org/w/index.php?search=` + encodeURIComponent(d.wiki);
   const cp = $('cPath'), pc = rgbCss(colorOf(sel));
