@@ -31,6 +31,10 @@ Fly from space down to any point on Earth and look up: Sun, Moon, planets, 5,000
 | The Sun's analemma: its position at the same clock time every day for a year | Shadow guide (umbra, penumbra, Saros return dates) beside the Moon's Saros cycle |
 | ![Mars at opposition with Phobos beside it](docs/img/mars-phobos.jpg) | ![Jupiter's oblate disc with Io in transit and two moon shadows on the clouds](docs/img/jupiter-moons.jpg) |
 | Mars near opposition with Phobos (moons plugin) | Jupiter: Io in transit, the shadows of Io and Ganymede on the disc, Europa inside Jupiter's shadow |
+| ![Uranus's rosette drawn over the sky, with the live JSON of its card](docs/img/uranus-rosette.jpg) | ![Star trails of the whole sky turning around the pole, with a card for Capella](docs/img/star-trails.jpg) |
+| Uranus's rosette traced against the stars, next to the live JSON view of its data card | Star trails of all the stars, live, turning around the celestial pole; Capella's card and the options panel |
+| ![Partial lunar eclipse with its geometry window: the Moon against the umbra and penumbra](docs/img/lunar-eclipse-geometry.jpg) | ![Jupiter's synodic cycle as a 3D object, with the JSON of Jupiter and its moons](docs/img/jupiter-synodic.jpg) |
+| Partial lunar eclipse (2069) with its geometry window: the Moon against the umbra and penumbra, and the Saros return dates | Jupiter's synodic cycle (399 days) in the 3D geometry window, with the JSON of the planet and its moons |
 
 ## Features
 

@@ -1619,10 +1619,7 @@ function flowTick(ms) {
   alpha(gp, gpA); gp.style.pointerEvents = gpA > 0.6 ? 'auto' : 'none';
 }
 function splashPoke() { if (appMode === 'splash' && dismissT < 0) { dismissT = 0; } }   // cualquier interacción cierra la portada
-$('globeLayer').addEventListener('pointerdown', splashPoke);
-addEventListener('wheel', splashPoke, { passive: true });
-let moved = 0, lastMX = null, lastMY = 0;
-addEventListener('pointermove', (e) => { if (lastMX !== null) moved += Math.hypot(e.clientX - lastMX, e.clientY - lastMY); lastMX = e.clientX; lastMY = e.clientY; if (moved > 60 && flowT > 1200) splashPoke(); });
+addEventListener('pointerdown', splashPoke);          // la portada se cierra con un clic o un toque en cualquier lugar, o con cualquier tecla; mover el ratón ya no la cierra
 $('gGo').onclick = goSky; $('newLoc').onclick = newLocation;
 addEventListener('keydown', (e) => {
   if (appMode === 'splash') { splashPoke(); return; }

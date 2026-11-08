@@ -22,3 +22,9 @@ test('PWA: index.html enlaza el manifiesto, el ícono de Apple y el color de tem
   const h = read('index.html'); assert.ok(h.includes('rel="manifest"') && h.includes('apple-touch-icon') && h.includes('theme-color'));
   for (const f of ['public/manifest.webmanifest', 'public/sw.js', 'index.html']) assert.ok(!/gmail|crizman/i.test(read(f)), f);
 });
+
+test('Marca: todo archivo de /brand/ que enlaza index.html existe en public/brand', () => {
+  const h = read('index.html'); const refs = [...h.matchAll(/["'(]\/brand\/([\w.-]+)/g)].map((m) => m[1]);
+  assert.ok(refs.length > 5); for (const f of new Set(refs)) assert.ok(existsSync(new URL('public/brand/' + f, root)), f);
+  assert.ok(/<title>Caeliscope<\/title>/.test(h));
+});

@@ -24,7 +24,7 @@ export const onLang = (f) => listeners.push(f);
 
 const DICT = {
   en: {
-    'splash.skip': 'Tap, drag or press a key to continue',
+    'splash.skip': 'Click anywhere or press any key to continue',
     'globe.title': 'Observer location', 'globe.lat': 'Latitude', 'globe.lon': 'Longitude', 'globe.geo': 'My location', 'globe.geoTitle': 'Use this device’s location',
     'globe.zoomOut': 'Zoom out', 'globe.zoomIn': 'Zoom in', 'globe.go': 'See the sky from here',
     'globe.hint': 'Drag the globe to turn it, click to move the pin, wheel or pinch to zoom.',
@@ -101,7 +101,7 @@ const DICT = {
     'fov': 'FOV {v}',
   },
   es: {
-    'splash.skip': 'Toca, arrastra o pulsa una tecla para continuar',
+    'splash.skip': 'Haz clic en cualquier lugar o pulsa una tecla para continuar',
     'globe.title': 'Ubicación del observador', 'globe.lat': 'Latitud', 'globe.lon': 'Longitud', 'globe.geo': 'Mi ubicación', 'globe.geoTitle': 'Usar la ubicación de este dispositivo',
     'globe.zoomOut': 'Alejar', 'globe.zoomIn': 'Acercar', 'globe.go': 'Ver el cielo desde aquí',
     'globe.hint': 'Arrastra el globo para girarlo, haz clic para mover el pin, rueda o pellizco para el zoom.',

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Caeliscope · Demo Proof</title>
+<title>Caeliscope</title>
 <link rel="icon" type="image/svg+xml" href="/brand/caeliscope-icon.svg">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
@@ -39,7 +39,7 @@
   #gpanel { top: 14px; left: 14px; width: calc(262px * var(--ts)); padding: 12px 14px; z-index: 5; opacity: 0; pointer-events: none; display: none; }
   body.mode-globe #gpanel { display: block; }
   .g-brand { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-  .g-icon { height: 30px; width: auto; filter: drop-shadow(0 0 8px rgba(94,223,229,.45)); } .g-word { height: 13px; width: auto; }
+  .g-logo { height: 40px; width: auto; filter: drop-shadow(0 0 8px rgba(94,223,229,.45)); }
   .g-row { display: flex; gap: 6px; align-items: center; margin: 6px 0; }
   .g-row input { width: calc(74px * var(--ts)); }
   .g-row button { padding: 2px 10px; }
@@ -72,7 +72,7 @@
   #card a { color: #6fd0d8; font-size: calc(12px * var(--ts)); }
   :root { --pw: calc(280px * var(--ts)); }   /* ancho exterior del panel izquierdo del cielo (250 + relleno + borde) */
   #skyLogo { position: fixed; top: 12px; left: 14px; width: var(--pw); display: flex; align-items: center; justify-content: space-between; pointer-events: none; z-index: 6; filter: drop-shadow(0 1px 6px rgba(0,0,0,.6)); }
-  #skyLogo .g-icon { width: 21.7%; height: auto; } #skyLogo .g-word { width: 73.3%; height: auto; }
+  #skyLogo .g-logo { width: 100%; height: auto; }
   #skyLogo { pointer-events: auto; cursor: pointer; transition: filter .2s; } #skyLogo:hover, #skyLogo:focus-visible { filter: drop-shadow(0 0 8px rgba(94,223,229,.55)); outline: none; }
   .logobtn { display: flex; align-items: center; gap: 10px; padding: 0; border: 0; border-radius: 6px; background: none; cursor: pointer; } .logobtn:hover { filter: drop-shadow(0 0 8px rgba(94,223,229,.55)); }
   #aboutVeil { position: fixed; inset: 0; z-index: 40; background: rgba(2, 4, 9, .55); backdrop-filter: blur(3px); }
@@ -80,7 +80,7 @@
   #aboutWin[hidden], #aboutVeil[hidden] { display: none; }
   #aboutWin { padding: 18px 26px 18px; } #abClose { position: absolute; top: 10px; right: 10px; z-index: 2; }
   .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
-  .abhead { flex: none; display: flex; justify-content: center; padding: 6px 34px 14px; } .abhead img { width: 100%; max-width: 440px; height: auto; display: block; }
+  .abhead { flex: none; display: flex; justify-content: center; padding: 6px 34px 14px; } .abhead img { width: 100%; max-width: 400px; height: auto; display: block; }
   #abBody { overflow: auto; flex: 1 1 auto; padding-right: 6px; font-size: calc(13px * var(--ts)); line-height: 1.55; color: #d6def0; border-top: 1px solid rgba(220, 180, 80, .22); }
   #abBody h3 { margin: 14px 0 4px; font-size: calc(11px * var(--ts)); font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--oro); }
   #abBody p { margin: 0 0 7px; } #abBody a { color: var(--cian); }
@@ -239,14 +239,14 @@
 <div id="splash" aria-hidden="true">
   <div id="sVig"></div>
   <img id="sHerm" src="/brand/hermetica-light.svg" alt="Hermetica Labs" draggable="false">
-  <img id="sTitle" src="/brand/caeliscope.svg" alt="Caeliscope, powered by Caelis Engine" draggable="false">
+  <img id="sTitle" src="/brand/caeliscope-logo.svg" alt="Caeliscope" draggable="false">
   <div id="sSub">Demo Proof</div>
   <div id="sSkip" data-i18n="splash.skip">Tap, drag or press a key to continue</div>
 </div>
 <div id="veil"></div>
 <div id="nightFilter" aria-hidden="true"></div>
 <div id="gpanel" class="hud">
-  <div class="g-brand"><button type="button" id="gAbout" class="logobtn" data-i18n-title="about.open" data-i18n-aria="about.open"><img src="/brand/caeliscope-icon.svg" alt="" class="g-icon"><img src="/brand/caeliscope-word.svg" alt="Caeliscope" class="g-word"></button><span class="hdrtools"><button class="txtsw" type="button" data-i18n-title="opt.textSize" data-i18n-aria="opt.textSize"><span class="s0 on">A</span><span class="s1">A</span><span class="s2">A</span></button><span class="langsw" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true">EN</button><button data-lang="es" aria-pressed="false">ES</button></span></span></div>
+  <div class="g-brand"><button type="button" id="gAbout" class="logobtn" data-i18n-title="about.open" data-i18n-aria="about.open"><img src="/brand/caeliscope-logo.svg" alt="Caeliscope" class="g-logo"></button><span class="hdrtools"><button class="txtsw" type="button" data-i18n-title="opt.textSize" data-i18n-aria="opt.textSize"><span class="s0 on">A</span><span class="s1">A</span><span class="s2">A</span></button><span class="langsw" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true">EN</button><button data-lang="es" aria-pressed="false">ES</button></span></span></div>
   <small data-i18n="globe.title">Observer location</small>
   <div class="g-row">Lat <input id="glat" type="number" step="0.01" min="-90" max="90" data-i18n-aria="globe.lat"> Lon <input id="glon" type="number" step="0.01" min="-180" max="180" data-i18n-aria="globe.lon"></div>
   <div class="g-row"><button id="gGeo" data-i18n="globe.geo" data-i18n-title="globe.geoTitle">My location</button><button id="gZm" data-i18n-aria="globe.zoomOut">&minus;</button><button id="gZp" data-i18n-aria="globe.zoomIn">+</button></div>
@@ -255,7 +255,7 @@
   <small id="gTime"></small>
   <small id="gDetail"></small>
 </div>
-<div id="skyLogo" class="skyhud" role="button" tabindex="0" data-i18n-title="about.open" data-i18n-aria="about.open"><img src="/brand/caeliscope-icon.svg" alt="" class="g-icon"><img src="/brand/caeliscope-word.svg" alt="Caeliscope" class="g-word"></div>
+<div id="skyLogo" class="skyhud" role="button" tabindex="0" data-i18n-title="about.open" data-i18n-aria="about.open"><img src="/brand/caeliscope-logo.svg" alt="Caeliscope" class="g-logo"></div>
 <div id="info" class="hud skyhud" data-min="info">
   <div class="phdr"><span data-i18n="info.title">Georeference</span><button class="minbtn" type="button">–</button></div>
   <div id="clock"></div>
@@ -305,7 +305,7 @@
 <div id="aboutWin" class="hud" role="dialog" aria-modal="true" aria-labelledby="abTitle" hidden>
   <button class="minbtn" id="abClose" type="button">✕</button>
   <h2 id="abTitle" class="srOnly"></h2>
-  <div class="abhead"><img src="/brand/about-caeliscope-word.svg" alt="Caeliscope" draggable="false"></div>
+  <div class="abhead"><img src="/brand/caeliscope-logo.svg" alt="Caeliscope" draggable="false"></div>
   <div id="abBody"></div>
   <div class="abfoot">
     <span class="abside"><a id="abContact" class="abmail" href="mailto:hermeticalabs.dev@proton.me"></a><button id="abInstall" class="abinst" type="button" hidden></button></span>

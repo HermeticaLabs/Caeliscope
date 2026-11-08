@@ -31,6 +31,10 @@ Viaja desde el espacio hasta cualquier punto de la Tierra y mira hacia arriba: S
 | El analema del Sol: su posición a la misma hora del reloj cada día durante un año | Guía de sombra (umbra, penumbra, fechas de Saros) junto al ciclo de Saros de la Luna |
 | ![Marte cerca de la oposición con Fobos a su lado](docs/img/mars-phobos.jpg) | ![El disco achatado de Júpiter con Ío en tránsito y dos sombras de lunas sobre las nubes](docs/img/jupiter-moons.jpg) |
 | Marte cerca de la oposición con Fobos (plugin de lunas) | Júpiter: Ío en tránsito, las sombras de Ío y Ganímedes sobre el disco, Europa dentro de la sombra de Júpiter |
+| ![La roseta de Urano dibujada sobre el cielo, con el JSON en vivo de su ficha](docs/img/uranus-rosette.jpg) | ![Estelas de todo el cielo girando alrededor del polo, con la ficha de Capella](docs/img/star-trails.jpg) |
+| La roseta de Urano trazada contra las estrellas, junto a la vista JSON en vivo de su ficha | Estelas de todas las estrellas, en vivo, girando alrededor del polo celeste; ficha de Capella y panel de opciones |
+| ![Eclipse lunar parcial con su ventana de geometría: la Luna frente a la umbra y la penumbra](docs/img/lunar-eclipse-geometry.jpg) | ![El ciclo sinódico de Júpiter como objeto 3D, con el JSON de Júpiter y sus lunas](docs/img/jupiter-synodic.jpg) |
+| Eclipse lunar parcial (2069) con su ventana de geometría: la Luna frente a la umbra y la penumbra, y las fechas de retorno de Saros | El ciclo sinódico de Júpiter (399 días) en la ventana de geometría 3D, con el JSON del planeta y sus lunas |
 
 ## Funciones
 
