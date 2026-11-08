@@ -30,8 +30,9 @@
   #splash { position: fixed; inset: 0; pointer-events: none; z-index: 4; color: #eef2fb; }
   #splash > * { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; white-space: nowrap; text-align: center; }
   #sVig { width: min(96vw, 96vmin + 20vw); height: 52vmin; background: radial-gradient(closest-side, rgba(2,4,10,.78), rgba(2,4,10,.4) 60%, rgba(2,4,10,0)); }
-  #sHerm, #sTitle { opacity: var(--a, 0); transform: translate(-50%, -50%) scale(calc(1.04 - 0.04 * var(--a, 0))); filter: blur(calc((1 - var(--a, 0)) * 9px)); user-select: none; }
+  #sHerm, #sEngine, #sTitle { opacity: var(--a, 0); transform: translate(-50%, -50%) scale(calc(1.04 - 0.04 * var(--a, 0))); filter: blur(calc((1 - var(--a, 0)) * 9px)); user-select: none; }
   #sHerm { width: clamp(150px, 17vw, 250px); height: auto; filter: blur(calc((1 - var(--a, 0)) * 9px)) drop-shadow(0 0 12px rgba(0, 8, 24, .8)) drop-shadow(0 0 24px rgba(70, 170, 255, .3)); }   /* claro con sombra oscura: se lee sobre el globo */
+  #sEngine { width: clamp(230px, 27vw, 420px); height: auto; filter: blur(calc((1 - var(--a, 0)) * 9px)) drop-shadow(0 0 12px rgba(0, 8, 24, .85)) drop-shadow(0 0 26px rgba(70, 170, 255, .3)); }
   #sTitle { width: clamp(270px, 40vw, 560px); height: auto; filter: blur(calc((1 - var(--a, 0)) * 9px)) drop-shadow(0 0 16px rgba(94, 223, 229, .55)) drop-shadow(0 0 46px rgba(94, 223, 229, .22)); }
   #sSub { top: calc(50% + clamp(62px, 8.8vw, 124px)); font-family: 'Jost Variable', 'Jost', 'Helvetica Neue', Arial, sans-serif; font-weight: 300; font-size: clamp(9px, 1vw, 12px); letter-spacing: .5em; text-transform: uppercase; padding-left: .5em; color: #b9e9ec; text-shadow: 0 0 6px rgba(0,0,0,.95), 0 0 18px rgba(0,0,0,.95); }
   #sSkip { top: auto; bottom: 26px; transform: translateX(-50%); font-family: 'Jost Variable', 'Jost', Arial, sans-serif; font-weight: 300; font-size: calc(11px * var(--ts)); letter-spacing: .12em; color: #aab4cc; }
@@ -239,6 +240,7 @@
 <div id="splash" aria-hidden="true">
   <div id="sVig"></div>
   <img id="sHerm" src="/brand/hermetica-light.svg" alt="Hermetica Labs" draggable="false">
+  <img id="sEngine" src="/brand/caelis-engine-light.svg" alt="Caelis Engine" draggable="false">
   <img id="sTitle" src="/brand/caeliscope-logo.svg" alt="Caeliscope" draggable="false">
   <div id="sSub">Demo Proof</div>
   <div id="sSkip" data-i18n="splash.skip">Tap, drag or press a key to continue</div>

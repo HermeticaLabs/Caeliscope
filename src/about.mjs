@@ -1,5 +1,5 @@
 // Contenido de la ventana "Acerca de" (se abre con el logo): qué es, privacidad, créditos, controles y compatibilidad. Texto plano en EN/ES, sin dependencias del navegador.
-export const ABOUT_VERSION = '1.49.0';
+export const ABOUT_VERSION = '1.50.0';
 export const REPO = 'https://github.com/HermeticaLabs/Caeliscope';
 export const ENGINE_REPO = 'https://github.com/hermeticalabs/caelis-engine';
 export const HERMETICA_LINK = `${ENGINE_REPO}#built-with-caelis-engine`;

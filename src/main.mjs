@@ -26,7 +26,7 @@ import { slideTo, findFree } from './winpos.mjs';
 import { solarShadow, lunarShadow, shadowMode } from './shadow.mjs';
 import { SAROS_DAYS, sarosReturn, BODY_ORDER, rangesFor, rangeConfig, cycleDays, usesModal, retroFlags, stations, retroColor, tickPlan, tickTimes, rosettePoint, fitPoints } from './trajectory.mjs';
 import { fadeColor, wrap180 } from './globe-math.mjs';
-import { splashState, veilAlpha, IN_MS, OUT_MS, SKY_VEIL_MS, LEAVE_VEIL_MS } from './timeline.mjs';
+import { splashState, veilAlpha, IN_MS, OUT_MS, SKY_VEIL_MS, LEAVE_VEIL_MS } from './splash-seq.mjs';
 import { sunMagnitude, moonMagnitude, planetMagnitude, saturnRingSinB, AU_KM, NAKED_EYE_LIMIT } from './magnitudes.mjs';
 import { solarObscuration, eclipseDarkness, moonTopoDist, eclToEq, umbraLUT } from './eclipse.mjs';
 import { DOME_VS, DOME_FS, GROUND_VS, GROUND_FS, STAR_VS, STAR_FS, LINE_VS, LINE_FS, TRAIL_VS, BILL_VS_SRC, SUN_FS, MOON_FS, PLANET_FS } from './shaders.mjs';
@@ -1595,7 +1595,7 @@ function flowTick(ms) {
   if (appMode === 'splash') {
     if (dismissT >= 0) dismissT += ms;
     const st = splashState(flowT, dismissT);
-    alpha($('sHerm'), st.hermetica); alpha($('sTitle'), st.title); alpha($('sSub'), st.sub); alpha($('sSkip'), st.skip); alpha($('sVig'), Math.max(st.hermetica, st.title) * 0.9);
+    alpha($('sHerm'), st.hermetica); alpha($('sEngine'), st.engine); alpha($('sTitle'), st.title); alpha($('sSub'), st.sub); alpha($('sSkip'), st.skip); alpha($('sVig'), Math.max(st.hermetica, st.engine, st.title) * 0.9);
     globe.spin = -st.spin;
     if (st.flying && !flew) { flew = true; globe.flyTo(obs.lat, obs.lon, globe.fitD(4.4)); }
     if (st.pinned && !pinned) { pinned = true; globe.setPin(obs.lat, obs.lon); setGlobeInputs(obs); }
