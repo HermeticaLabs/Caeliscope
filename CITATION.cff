@@ -6,4 +6,4 @@ authors:
   - name: "Hermetica Labs"
 repository-code: "https://github.com/hermeticalabs/caeliscope"
 license: AGPL-3.0-or-later
-version: 1.48.0
+version: 1.48.1

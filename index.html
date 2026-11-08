@@ -31,7 +31,7 @@
   #splash > * { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; white-space: nowrap; text-align: center; }
   #sVig { width: min(96vw, 96vmin + 20vw); height: 52vmin; background: radial-gradient(closest-side, rgba(2,4,10,.78), rgba(2,4,10,.4) 60%, rgba(2,4,10,0)); }
   #sHerm, #sTitle { opacity: var(--a, 0); transform: translate(-50%, -50%) scale(calc(1.04 - 0.04 * var(--a, 0))); filter: blur(calc((1 - var(--a, 0)) * 9px)); user-select: none; }
-  #sHerm { width: clamp(130px, 15vw, 210px); height: auto; filter: blur(calc((1 - var(--a, 0)) * 9px)) drop-shadow(0 0 22px rgba(70, 170, 255, .28)); }
+  #sHerm { width: clamp(150px, 17vw, 250px); height: auto; filter: blur(calc((1 - var(--a, 0)) * 9px)) drop-shadow(0 0 12px rgba(0, 8, 24, .8)) drop-shadow(0 0 24px rgba(70, 170, 255, .3)); }   /* claro con sombra oscura: se lee sobre el globo */
   #sTitle { width: clamp(270px, 40vw, 560px); height: auto; filter: blur(calc((1 - var(--a, 0)) * 9px)) drop-shadow(0 0 16px rgba(94, 223, 229, .55)) drop-shadow(0 0 46px rgba(94, 223, 229, .22)); }
   #sSub { top: calc(50% + clamp(62px, 8.8vw, 124px)); font-family: 'Jost Variable', 'Jost', 'Helvetica Neue', Arial, sans-serif; font-weight: 300; font-size: clamp(9px, 1vw, 12px); letter-spacing: .5em; text-transform: uppercase; padding-left: .5em; color: #b9e9ec; text-shadow: 0 0 6px rgba(0,0,0,.95), 0 0 18px rgba(0,0,0,.95); }
   #sSkip { top: auto; bottom: 26px; transform: translateX(-50%); font-family: 'Jost Variable', 'Jost', Arial, sans-serif; font-weight: 300; font-size: calc(11px * var(--ts)); letter-spacing: .12em; color: #aab4cc; }
@@ -89,8 +89,8 @@
   .abside { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; } .abinst { padding: 3px 12px; font-size: calc(12px * var(--ts)); border-color: rgba(94,223,229,.45); color: var(--cian); cursor: pointer; } .abinst:hover { background: rgba(94,223,229,.12); }
   .abmail { color: var(--cian); font-size: calc(13px * var(--ts)); text-decoration: none; letter-spacing: .04em; } .abmail:hover { text-decoration: underline; }
   .ablinks { display: flex; align-items: center; gap: 14px; margin-left: auto; } .ablinks a { display: block; line-height: 0; border-radius: 8px; transition: transform .15s, filter .15s; } .ablinks a:hover, .ablinks a:focus-visible { transform: translateY(-1px); filter: drop-shadow(0 0 7px rgba(94,223,229,.55)); outline: none; }
-  @media (max-width: 560px) { #aboutWin { padding: 14px 16px; } .ablinks { flex-wrap: wrap; justify-content: flex-end; gap: 8px 12px; } .ablinks img { height: 26px !important; } #abEngine img { height: 30px !important; } }
-  .ablinks img { height: 38px; width: auto; display: block; } #abEngine img { height: 44px; }
+  @media (max-width: 560px) { #aboutWin { padding: 14px 16px; } .ablinks { flex-wrap: wrap; justify-content: flex-end; gap: 8px 12px; } .ablinks img { height: 26px !important; } #abEngine img { height: 30px !important; } #abHerm img { height: 34px !important; } }
+  .ablinks img { height: 38px; width: auto; display: block; } #abEngine img { height: 44px; } #abHerm img { height: 46px; }
   #info { top: calc(12px + var(--pw) * 0.245 + 12px); left: 14px; padding: 10px 14px; width: calc(250px * var(--ts)); }
   #side { top: 14px; right: 14px; padding: 10px 14px; width: calc(262px * var(--ts)); z-index: 8; display: flex; flex-direction: column; max-height: calc(100vh - var(--barH, 170px) - 52px); box-sizing: content-box; }
   #side > * { flex: none; } #side > .sidebody { flex: 1 1 auto; }
@@ -238,7 +238,7 @@
 <div id="globeLayer"></div>
 <div id="splash" aria-hidden="true">
   <div id="sVig"></div>
-  <img id="sHerm" src="/brand/hermetica.png" alt="Hermetica Labs" draggable="false">
+  <img id="sHerm" src="/brand/hermetica-light.svg" alt="Hermetica Labs" draggable="false">
   <img id="sTitle" src="/brand/caeliscope.svg" alt="Caeliscope, powered by Caelis Engine" draggable="false">
   <div id="sSub">Demo Proof</div>
   <div id="sSkip" data-i18n="splash.skip">Tap, drag or press a key to continue</div>
@@ -312,7 +312,7 @@
     <span class="ablinks">
       <a id="abRepo" href="https://github.com/HermeticaLabs/Caeliscope" target="_blank" rel="noopener"><img src="/brand/about-github.png" alt="" draggable="false"></a>
       <a id="abEngine" href="https://github.com/hermeticalabs/caelis-engine" target="_blank" rel="noopener"><img src="/brand/about-engine.png" alt="" draggable="false"></a>
-      <a id="abHerm" href="https://github.com/HermeticaLabs/caelis-engine#built-with-caelis-engine" target="_blank" rel="noopener"><img src="/brand/about-hermetica.png" alt="" draggable="false"></a>
+      <a id="abHerm" href="https://github.com/HermeticaLabs/caelis-engine#built-with-caelis-engine" target="_blank" rel="noopener"><img src="/brand/hermetica-mark-cyan.svg" alt="" draggable="false"></a>
     </span>
   </div>
 </div>

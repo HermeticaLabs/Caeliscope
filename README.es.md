@@ -115,3 +115,12 @@ Los datos y recursos de terceros (catálogo estelar, texturas, teselas, tipograf
 Se agradecen issues y pull requests; ver [`CONTRIBUTING.md`](CONTRIBUTING.md). Para reportes de seguridad ver [`SECURITY.md`](SECURITY.md).
 
 English: [`README.md`](README.md)
+
+<p align="center">
+  <a href="https://github.com/HermeticaLabs">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/img/hermetica-labs-light.svg">
+      <img src="docs/img/hermetica-labs-dark.svg" alt="Hermetica Labs" width="150">
+    </picture>
+  </a>
+</p>
