@@ -6,7 +6,7 @@ import { dirFromAltAz, skyPalette, extinction, moonOrientation, eclipseAlt } fro
 import { skyRotation, magLimit, buildStarArrays, buildSegmentPositions, lineAlpha, labelMagLimit, equatorialVector, horizontalOf, normName, precessionMatrix } from './stars.mjs';
 import { fmtHMS, fmtDMS, planetPhase, elongationDeg, riseSetFromSamples, refractionDeg } from './astro-fmt.mjs';
 import { findPhase, findSunLongitude, findEclipseWhere, localSolarInfo, localSolarKind, lunarEclipseInfo } from './events.mjs';
-import { buildExport, toText, fileName } from './snapshot-json.mjs';
+import { buildExport, toText, fileName, ROUNDING_MOON } from './snapshot-json.mjs';
 import { TEXT_STEPS, nextTextStep, clampOpacity, parsePrefs } from './ui-prefs.mjs';
 import { aboutHtml, ABOUT } from './about.mjs';
 import { t as T, getLang, setLang, onLang, initLang, applyStatic, locale, bodyName, conName, starName } from './i18n.mjs';
@@ -624,10 +624,10 @@ let jsonOpen = false, jsonText = '', jsonObj = null;
 function currentExport() {
   if (!sel || !lastSnap || !rotM) return null;
   const observer = { lat: obs.lat, lon: obs.lon };
-  if (sel.kind === 'body') return buildExport({ kind: 'body', key: sel.key, name: bodyName(sel.key, 'en'), data: lastSnap.bodies[sel.key], snap: lastSnap, observer, extra: sel.key === 'Luna' ? lastSnap.luna : (() => { const ms = ui.mn ? moonsFor(sel.key) : null; return ms ? { satellites: { plugin: ms.pl.id, model: ms.pl.model, moons: ms.list.map((s) => ({ key: s.key, east_arcsec: +s.dxArcsec.toFixed(3), north_arcsec: +s.dyArcsec.toFixed(3), separation_arcsec: +s.sepArcsec.toFixed(3), line_of_sight_km: Math.round(s.zKm), transit: s.transit, occulted: s.occulted, behind_rings_opacity: s.ringCover, in_planet_shadow: s.eclipsed, shadow_on_disc: !!s.shadow })) } } : undefined; })() });
+  if (sel.kind === 'body') return buildExport({ kind: 'body', key: bodyName(sel.key, 'en'), engineKey: sel.key, name: bodyName(sel.key, 'en'), rounding: ui.mn && moonsFor(sel.key) ? ROUNDING_MOON : undefined, data: lastSnap.bodies[sel.key], snap: lastSnap, observer, extra: sel.key === 'Luna' ? lastSnap.luna : (() => { const ms = ui.mn ? moonsFor(sel.key) : null; return ms ? { satellites: { plugin: ms.pl.id, model: ms.pl.model, moons: ms.list.map((s) => ({ id: ms.pl.moons.find((q) => q.key === s.key)?.name.en ?? s.key, east_arcsec: +s.dxArcsec.toFixed(3), north_arcsec: +s.dyArcsec.toFixed(3), separation_arcsec: +s.sepArcsec.toFixed(3), line_of_sight_km: Math.round(s.zKm), transit: s.transit, occulted: s.occulted, behind_rings_opacity: s.ringCover, in_planet_shadow: s.eclipsed, shadow_on_disc: !!s.shadow })) } } : undefined; })() });
   if (sel.kind === 'moon') {
     const m = moonSel(); if (!m) return null; const { pl, def, s } = m;
-    return buildExport({ kind: 'moon', key: sel.key, name: def.name.en, snap: lastSnap, observer, data: { planet: sel.planet, east_arcsec: +s.dxArcsec.toFixed(3), north_arcsec: +s.dyArcsec.toFixed(3), separation_arcsec: +s.sepArcsec.toFixed(3), position_km: [s.xKm, s.yKm, s.zKm].map(Math.round), transit: s.transit, occulted: s.occulted, in_planet_shadow: s.eclipsed, shadow_on_disc: !!s.shadow, behind_rings_opacity: s.ringCover, mean_radius_km: def.meanRadiusKm, magnitude: def.mag, orbit: def.elements },
+    return buildExport({ kind: 'moon', key: def.name.en, name: def.name.en, rounding: ROUNDING_MOON, snap: lastSnap, observer, data: { planet: bodyName(sel.planet, 'en'), planet_engine_key: sel.planet, east_arcsec: +s.dxArcsec.toFixed(3), north_arcsec: +s.dyArcsec.toFixed(3), separation_arcsec: +s.sepArcsec.toFixed(3), position_km: [s.xKm, s.yKm, s.zKm].map(Math.round), transit: s.transit, occulted: s.occulted, in_planet_shadow: s.eclipsed, shadow_on_disc: !!s.shadow, behind_rings_opacity: s.ringCover, mean_radius_km: def.meanRadiusKm, magnitude: def.mag, orbit: def.elements },
       extra: { plugin: pl.id, model: pl.model, planet_position: lastSnap.bodies[sel.planet] } });
   }
   const s = starCat[sel.i], info = starInfo && starInfo[sel.i], h = horizontalOf(rotM, starVec(sel.i));

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { buildExport, toText, fileName, ENGINE, PUBLISHER } from '../src/snapshot-json.mjs';
+import { buildExport, toText, fileName, ENGINE, PUBLISHER , ROUNDING_MOON } from '../src/snapshot-json.mjs';
 
 const has = existsSync(new URL('../src/engine/caelis-engine.generated.mjs', import.meta.url));
 const { CaelisAPI } = has ? await import('../src/engine/caelis-engine.generated.mjs') : { CaelisAPI: null };
@@ -26,4 +26,11 @@ test('JSON de una luna: tipo moon, origen del plugin y nombre en inglés', async
   const { buildExport, ORIGIN } = await import('../src/snapshot-json.mjs');
   const o = buildExport({ kind: 'moon', key: 'Io', name: 'Io', data: { planet: 'Jupiter' }, snap: { meta: {} }, observer: { lat: 0, lon: 0 } });
   assert.equal(o.object.kind, 'moon'); assert.equal(o._meta.data_origin, ORIGIN.moon); assert.ok(/plugin/.test(o._meta.data_origin));
+});
+
+test('identificadores en inglés; la clave interna del motor se conserva aparte', () => {
+  const o = buildExport({ kind: 'body', key: 'Saturn', engineKey: 'Saturno', name: 'Saturn', data: {}, snap: { meta: {} }, observer: { lat: 0, lon: 0 } });
+  assert.equal(o.object.id, 'Saturn'); assert.equal(o.object.engine_key, 'Saturno');
+  const m = buildExport({ kind: 'moon', key: 'Enceladus', name: 'Enceladus', rounding: ROUNDING_MOON, data: {}, snap: { meta: {} }, observer: { lat: 0, lon: 0 } });
+  assert.equal(m.object.id, 'Enceladus'); assert.ok(!('engine_key' in m.object)); assert.ok(/0\.001/.test(m._meta.rounding));
 });

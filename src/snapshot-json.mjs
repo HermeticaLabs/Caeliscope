@@ -6,7 +6,9 @@ export const PUBLISHER = 'Hermetica Labs';
 export const ORIGIN = { star: 'Hipparcos catalogue (via d3-celestial); horizontal coordinates computed by Caeliscope from the engine sidereal time', body: 'Caelis Engine getSnapshotAt()', moon: 'Caeliscope satellite plugin (mean orbital elements) over the planet position resolved by Caelis Engine getSnapshotAt()' };
 
 // kind: 'body' | 'star' | 'moon'. snap = lo que devolvió getSnapshotAt. data = objeto del cuerpo (o de la estrella).
-export function buildExport({ kind, key, name, data, snap, observer, extra }) {
+export const ROUNDING_MOON = 'Moon offsets and separations in arcseconds rounded to 0.001 (JSON drops trailing zeros: -3.000 is written -3); distances in km rounded to integers';
+// key = identificador en inglés (para uso externo); engineKey = clave interna del motor, solo si es distinta.
+export function buildExport({ kind, key, engineKey, name, data, snap, observer, extra, rounding }) {
   const meta = snap?.meta ?? {};
   const out = {
     _meta: {
@@ -17,8 +19,9 @@ export function buildExport({ kind, key, name, data, snap, observer, extra }) {
       data_origin: ORIGIN[kind] ?? ORIGIN.body,
       instant_utc: meta.utc ?? null, jd_tt: meta.jd_tt ?? null, delta_t_sec: meta.delta_t_sec ?? null,
       observer: { lat_deg: observer.lat, lon_deg: observer.lon },
+      ...(rounding ? { rounding } : {}),
     },
-    object: { kind, id: key, name },
+    object: { kind, id: key, ...(engineKey && engineKey !== key ? { engine_key: engineKey } : {}), name },
     data,
   };
   if (extra) out.extra = extra;
