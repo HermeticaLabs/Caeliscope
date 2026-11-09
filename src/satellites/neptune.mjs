@@ -5,7 +5,7 @@
 const POLE = [299.36, 43.46];
 export const NEPTUNE_PLUGIN = {
   id: 'neptune-mean', planet: 'Neptuno', radiusKm: 24764, flattening: 0.0171, pole: POLE,
-  model: 'Mean elements relative to the Neptunian equator, mean longitude propagated with the classical sidereal mean motions; no secular precession',
+  model: 'Hermetica Labs Keplerian propagation of mean elements relative to the Neptunian equator; no secular precession',
   moons: [
     { key: 'Triton', name: { en: 'Triton', es: 'Tritón' }, meanRadiusKm: 1353.4, mag: 13.5, color: '#e6d9cf', elements: { a: 354759, e: 0.00002, w: 0.0, M: 0.0, i: 156.9, node: 177.0, nSid: 61.2572645, apsisDir: 1, Papsis: 0, Pnode: 0, pole: POLE } },
     { key: 'Nereid', name: { en: 'Nereid', es: 'Nereida' }, meanRadiusKm: 178.5, mag: 19.2, color: '#b9bcc2', elements: { a: 5513818, e: 0.7507, w: 281.0, M: 318.0, i: 32.55, node: 334.0, nSid: 0.9996218, apsisDir: 1, Papsis: 0, Pnode: 0, pole: POLE } },

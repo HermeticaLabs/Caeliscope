@@ -3,7 +3,7 @@
 // Modelo medio, no una efeméride de precisión. Los anillos (C, B, Cassini, A) son el plano ecuatorial de Saturno: ocultan a las lunas que pasan detrás de ellos.
 export const SATURN_PLUGIN = {
   id: 'saturn-classical-mean', planet: 'Saturno', radiusKm: 60268, flattening: 0.09796, pole: [40.589, 83.537],
-  model: 'JPL mean elements (epoch J2000, local Laplace planes; reference ephemeris SAT441), mean longitude propagated with the classical sidereal mean motions',
+  model: 'Hermetica Labs Keplerian propagation of JPL mean elements (J2000, local Laplace planes, ref. SAT441)',
   rings: [
     { rIn: 74658, rOut: 91975, opacity: 0.15 },     // anillo C
     { rIn: 91975, rOut: 117507, opacity: 1.0 },     // anillo B (opaco)

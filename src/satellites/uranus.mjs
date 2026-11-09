@@ -6,7 +6,7 @@
 const POLE = [77.311, 15.175];
 export const URANUS_PLUGIN = {
   id: 'uranus-gust-mean', planet: 'Urano', radiusKm: 25559, flattening: 0.0229, pole: POLE,
-  model: 'Mean elements in the Uranian equatorial plane (reference ephemeris GUST86), mean longitude propagated with the classical sidereal mean motions; no secular precession',
+  model: 'Hermetica Labs Keplerian propagation of mean elements in the Uranian equatorial plane (ref. GUST86); no secular precession',
   moons: [
     { key: 'Miranda', name: { en: 'Miranda', es: 'Miranda' }, meanRadiusKm: 235.8, mag: 15.8, color: '#cfd3d6', elements: { a: 129900, e: 0.0013, w: 68.3, M: 311.3, i: 4.34, node: 326.4, nSid: 254.6907312, apsisDir: 1, Papsis: 0, Pnode: 0, pole: POLE } },
     { key: 'Ariel', name: { en: 'Ariel', es: 'Ariel' }, meanRadiusKm: 578.9, mag: 14.2, color: '#d8d6d0', elements: { a: 190900, e: 0.0012, w: 115.3, M: 39.5, i: 0.04, node: 22.4, nSid: 142.8356608, apsisDir: 1, Papsis: 0, Pnode: 0, pole: POLE } },

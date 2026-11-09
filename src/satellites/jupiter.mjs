@@ -3,7 +3,7 @@
 // El nodo retrocede; el periapsis de Ío y Europa retrocede (excentricidad forzada por la resonancia) y el de Ganímedes y Calisto avanza. Modelo medio, no una efeméride de precisión.
 export const JUPITER_PLUGIN = {
   id: 'jupiter-galilean-mean', planet: 'Jupiter', radiusKm: 71492, flattening: 0.06487, pole: [268.057, 64.495],
-  model: 'JPL mean elements (epoch J2000, local Laplace planes; reference ephemeris JUP365), mean longitude propagated with the classical sidereal mean motions',
+  model: 'Hermetica Labs Keplerian propagation of JPL mean elements (J2000, local Laplace planes, ref. JUP365)',
   moons: [
     { key: 'Io', name: { en: 'Io', es: 'Ío' }, meanRadiusKm: 1821.6, mag: 5.0, color: '#f0d9a0', elements: { a: 421800, e: 0.004, w: 49.1, M: 330.9, i: 0.0, node: 0.0, nSid: 203.4889538, apsisDir: -1, Papsis: 1.333, Pnode: 0, pole: [268.1, 64.5] } },
     { key: 'Europa', name: { en: 'Europa', es: 'Europa' }, meanRadiusKm: 1560.8, mag: 5.3, color: '#f4efe6', elements: { a: 671100, e: 0.009, w: 45.0, M: 345.4, i: 0.5, node: 184.0, nSid: 101.3747235, apsisDir: -1, Papsis: 1.394, Pnode: 30.202, pole: [268.1, 64.5] } },
