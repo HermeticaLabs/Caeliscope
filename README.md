@@ -17,6 +17,8 @@ Fly from space down to any point on Earth and look up: Sun, Moon, planets, 5,000
 
 ![Caeliscope splash: the Earth turning behind the logo](docs/img/hero-splash.jpg)
 
+**[Read the documentation](https://hermeticalabs.github.io/Caeliscope/docs/)** — user guide, JSON reference and moon plugins (English and Spanish).
+
 ## Gallery
 
 | | |

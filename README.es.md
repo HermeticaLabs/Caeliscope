@@ -17,6 +17,8 @@ Viaja desde el espacio hasta cualquier punto de la Tierra y mira hacia arriba: S
 
 ![Caeliscope: la Tierra girando detrás del logo](docs/img/hero-splash.jpg)
 
+**[Leer la documentación](https://hermeticalabs.github.io/Caeliscope/docs/)** — guía de uso, referencia del JSON y plugins de lunas (español e inglés).
+
 ## Galería
 
 | | |
