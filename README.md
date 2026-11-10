@@ -1,4 +1,10 @@
+<div align="center">
+
+<img src="docs/img/caeliscope-logo.svg" alt="Caeliscope" width="560">
+
 # Caeliscope
+
+**An immersive sky viewer built on [Caelis Engine](https://github.com/HermeticaLabs/caelis-engine). A technical demo proof by [Hermetica Labs](https://github.com/HermeticaLabs).**
 
 [![Live demo](https://img.shields.io/badge/live%20demo-open-5edfe5?style=flat)](https://hermeticalabs.github.io/Caeliscope/)
 [![CI](https://github.com/HermeticaLabs/Caeliscope/actions/workflows/ci.yml/badge.svg)](https://github.com/HermeticaLabs/Caeliscope/actions/workflows/ci.yml)
@@ -8,7 +14,9 @@
 [![GitHub stars](https://img.shields.io/github/stars/HermeticaLabs/Caeliscope?style=flat)](https://github.com/HermeticaLabs/Caeliscope/stargazers)
 [![Node.js 22+](https://img.shields.io/badge/node-%E2%89%A522-339933.svg)](package.json)
 
-**An immersive sky viewer built on [Caelis Engine](https://github.com/HermeticaLabs/caelis-engine). A technical demo proof by [Hermetica Labs](https://github.com/HermeticaLabs).**
+English · [Español](README.es.md)
+
+</div>
 
 Fly from space down to any point on Earth and look up: Sun, Moon, planets, 5,000+ named stars, the Milky Way, solar and lunar eclipses, with the sky shaded by the real position of the Sun. Every position on screen comes from one call to Caelis Engine; this repository is the rendering layer on top.
 

@@ -1,4 +1,10 @@
+<div align="center">
+
+<img src="docs/img/caeliscope-logo.svg" alt="Caeliscope" width="560">
+
 # Caeliscope
+
+**Visor de cielo inmersivo construido sobre [Caelis Engine](https://github.com/HermeticaLabs/caelis-engine). Un technical demo proof de [Hermetica Labs](https://github.com/HermeticaLabs).**
 
 [![Live demo](https://img.shields.io/badge/live%20demo-open-5edfe5?style=flat)](https://hermeticalabs.github.io/Caeliscope/)
 [![CI](https://github.com/HermeticaLabs/Caeliscope/actions/workflows/ci.yml/badge.svg)](https://github.com/HermeticaLabs/Caeliscope/actions/workflows/ci.yml)
@@ -8,7 +14,9 @@
 [![GitHub stars](https://img.shields.io/github/stars/HermeticaLabs/Caeliscope?style=flat)](https://github.com/HermeticaLabs/Caeliscope/stargazers)
 [![Node.js 22+](https://img.shields.io/badge/node-%E2%89%A522-339933.svg)](package.json)
 
-**Visor de cielo inmersivo construido sobre [Caelis Engine](https://github.com/HermeticaLabs/caelis-engine). Un technical demo proof de [Hermetica Labs](https://github.com/HermeticaLabs).**
+[English](README.md) · Español
+
+</div>
 
 Viaja desde el espacio hasta cualquier punto de la Tierra y mira hacia arriba: Sol, Luna, planetas, más de 5.000 estrellas con nombre, Vía Láctea y eclipses solares y lunares, con el cielo iluminado según la posición real del Sol. Cada posición en pantalla sale de una consulta a Caelis Engine; este repositorio es la capa visual.
 

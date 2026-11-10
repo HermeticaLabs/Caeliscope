@@ -5,8 +5,8 @@ import { join, dirname } from 'node:path';
 
 export const DOC_LANGS = { es: 'Español', en: 'English' };
 const UI = {
-  es: { search: 'Buscar en la documentación', none: 'Sin resultados', menu: 'Menú', app: 'Abrir Caeliscope', prev: 'Anterior', next: 'Siguiente', on: 'En esta página', docs: 'Documentación', foot: 'Documentación de Caeliscope · Hermetica Labs · AGPL-3.0-or-later' },
-  en: { search: 'Search the documentation', none: 'No results', menu: 'Menu', app: 'Open Caeliscope', prev: 'Previous', next: 'Next', on: 'On this page', docs: 'Documentation', foot: 'Caeliscope documentation · Hermetica Labs · AGPL-3.0-or-later' },
+  es: { search: 'Buscar en la documentación', none: 'Sin resultados', menu: 'Menú', app: 'Abrir Caeliscope', prev: 'Anterior', next: 'Siguiente', on: 'En esta página', docs: 'Documentación', contact: 'Contáctanos' },
+  en: { search: 'Search the documentation', none: 'No results', menu: 'Menu', app: 'Open Caeliscope', prev: 'Previous', next: 'Next', on: 'On this page', docs: 'Documentation', contact: 'Contact Us' },
 };
 export const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 export const slug = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'seccion';
@@ -71,7 +71,7 @@ const CSS = `:root{--bg:#02040a;--panel:#070b14;--line:#16202f;--fg:#dbe3f1;--di
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 'Jost Variable','Jost','Helvetica Neue',Arial,sans-serif}
 a{color:var(--cy);text-decoration:none}a:hover{text-decoration:underline}
 header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:18px;padding:10px 22px;background:rgba(2,4,10,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-header img{height:32px;display:block;border:0;border-radius:0}header .sp{flex:1}
+header img{height:46px;display:block;border:0;border-radius:0}header .sp{flex:1}
 #q{width:min(320px,34vw);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font:inherit;font-size:14px}
 #q:focus{outline:1px solid var(--cy)}
 .btn{white-space:nowrap;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:14px;color:var(--fg);background:var(--panel)}.btn:hover{border-color:var(--cy);text-decoration:none}
@@ -91,10 +91,15 @@ pre{background:var(--code);border:1px solid var(--line);border-radius:10px;paddi
 blockquote{margin:1.2em 0;padding:.2em 1.1em;border-left:3px solid var(--cy);background:#07101c;border-radius:0 8px 8px 0}blockquote p{margin:.6em 0}
 .tw{overflow:auto}table{border-collapse:collapse;width:100%;font-size:15px;margin:1em 0}th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}th{background:var(--panel);font-weight:500}
 img{max-width:100%;border-radius:10px;border:1px solid var(--line)}hr{border:0;border-top:1px solid var(--line);margin:2em 0}
-.pn{display:flex;justify-content:space-between;gap:16px;margin-top:3em;padding-top:1.2em;border-top:1px solid var(--line)}.pn a{display:block;max-width:48%}.pn small{display:block;color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
-footer{text-align:center;color:var(--dim);font-size:13px;padding:0 22px 36px}
+.pn{display:flex;justify-content:space-between;gap:16px;margin-top:3em;padding-top:1.2em;border-top:1px solid var(--line)}.pn a{display:block;max-width:48%}.pn small{display:block;white-space:nowrap;color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+footer{max-width:1280px;margin:0 auto;padding:0 22px 36px;color:var(--dim);font-size:13px}
+.fbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px 16px;padding-top:16px;border-top:1px solid var(--line)}
+.fbar>a.mail{color:var(--cy);font-size:15px}
+.flinks{display:flex;align-items:center;gap:14px;margin-left:auto}.flinks a{display:block;line-height:0;border-radius:8px;transition:transform .15s,filter .15s}.flinks a:hover{transform:translateY(-2px);filter:brightness(1.15)}
+.flinks img{height:38px;width:auto;display:block;border:0;border-radius:0}.flinks .e img{height:44px}.flinks .h img{height:46px}
+.fline{text-align:center;margin-top:18px}
 @media(max-width:1000px){.wrap{grid-template-columns:minmax(0,1fr);gap:18px}nav.toc{display:none}nav.side{position:static;max-height:none;border-bottom:1px solid var(--line);padding-bottom:12px}}
-@media(max-width:560px){#q{width:34vw;min-width:0;flex:1}header{gap:8px;padding:8px 12px}header img{height:26px}.btn{padding:6px 9px;font-size:13px}}`;
+@media(max-width:560px){#q{width:auto;min-width:80px;flex:1}.btn.app{display:none}header{gap:8px;padding:8px 12px}header img{height:34px}.flinks{flex-wrap:wrap;justify-content:flex-end;gap:8px 12px}.flinks img{height:26px!important}.flinks .e img{height:30px!important}.flinks .h img{height:34px!important}.btn{padding:6px 9px;font-size:13px}}`;
 
 const SEARCH_JS = `(()=>{const q=document.getElementById('q'),r=document.getElementById('res');let ix=null;
 const load=()=>ix||(ix=fetch('search.json').then(x=>x.json()).catch(()=>[]));
@@ -117,10 +122,14 @@ export function pageHtml({ lang, meta, html, heads, pages, file, other, prev, ne
 <meta name="theme-color" content="#02040a"><link rel="icon" href="../../brand/caeliscope-icon.svg" type="image/svg+xml">
 <style>${CSS}</style></head><body>
 <header><a href="../../" title="${u.app}"><img src="../../brand/caeliscope-logo.svg" alt="Caeliscope"></a><span class="sp"></span>
-<input id="q" type="search" placeholder="${u.search} ( / )" autocomplete="off" aria-label="${u.search}">${sw}<a class="btn" href="../../">${u.app}</a></header>
+<input id="q" type="search" placeholder="${u.search} ( / )" autocomplete="off" aria-label="${u.search}">${sw}<a class="btn app" href="../../">${u.app}</a></header>
 <div id="res" data-none="${u.none}"></div>
 <div class="wrap"><nav class="side"><h4>${u.docs}</h4>${nav}</nav><main>${html}${pn}</main>${toc}</div>
-<footer>${u.foot}</footer><script>${SEARCH_JS}</script></body></html>`;
+<footer><div class="fbar"><a class="mail" href="mailto:hermeticalabs.dev@proton.me">${u.contact}</a><span class="flinks">
+<a href="https://github.com/HermeticaLabs/Caeliscope" target="_blank" rel="noopener" title="GitHub · Caeliscope"><img src="../../brand/about-github.png" alt="GitHub / Caeliscope"></a>
+<a class="e" href="https://github.com/hermeticalabs/caelis-engine" target="_blank" rel="noopener" title="Caelis Engine"><img src="../../brand/about-engine.png" alt="Caelis Engine"></a>
+<a class="h" href="https://github.com/HermeticaLabs/caelis-engine#built-with-caelis-engine" target="_blank" rel="noopener" title="Hermetica Labs"><img src="../../brand/hermetica-mark-cyan.svg" alt="Hermetica Labs"></a></span></div>
+<div class="fline">Hermetica Labs · Caeliscope · AGPL-3.0-or-later</div></footer><script>${SEARCH_JS}</script></body></html>`;
 }
 
 export function buildDocs({ srcDir = 'docs', outDir = 'dist/docs' } = {}) {
