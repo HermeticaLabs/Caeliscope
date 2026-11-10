@@ -91,7 +91,7 @@ pre{background:var(--code);border:1px solid var(--line);border-radius:10px;paddi
 blockquote{margin:1.2em 0;padding:.2em 1.1em;border-left:3px solid var(--cy);background:#07101c;border-radius:0 8px 8px 0}blockquote p{margin:.6em 0}
 .tw{overflow:auto}table{border-collapse:collapse;width:100%;font-size:15px;margin:1em 0}th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}th{background:var(--panel);font-weight:500}
 img{max-width:100%;border-radius:10px;border:1px solid var(--line)}hr{border:0;border-top:1px solid var(--line);margin:2em 0}
-.pn{display:flex;justify-content:space-between;gap:16px;margin-top:3em;padding-top:1.2em;border-top:1px solid var(--line)}.pn a{display:block;max-width:48%}.pn small{display:block;white-space:nowrap;color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.pn{display:flex;justify-content:space-between;gap:16px;margin-top:3em;padding-top:1.2em;border-top:1px solid var(--line)}.pn>span{flex:1}.pn a{display:block}.pn>span:last-child{text-align:right}.pn small{display:block;white-space:nowrap;color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
 footer{max-width:1280px;margin:0 auto;padding:0 22px 36px;color:var(--dim);font-size:13px}
 .fbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px 16px;padding-top:16px;border-top:1px solid var(--line)}
 .fbar>a.mail{color:var(--cy);font-size:15px}
@@ -127,8 +127,8 @@ export function pageHtml({ lang, meta, html, heads, pages, file, other, prev, ne
 <div class="wrap"><nav class="side"><h4>${u.docs}</h4>${nav}</nav><main>${html}${pn}</main>${toc}</div>
 <footer><div class="fbar"><a class="mail" href="mailto:hermeticalabs.dev@proton.me">${u.contact}</a><span class="flinks">
 <a href="https://github.com/HermeticaLabs/Caeliscope" target="_blank" rel="noopener" title="GitHub · Caeliscope"><img src="../../brand/about-github.png" alt="GitHub / Caeliscope"></a>
-<a class="e" href="https://github.com/hermeticalabs/caelis-engine" target="_blank" rel="noopener" title="Caelis Engine"><img src="../../brand/about-engine.png" alt="Caelis Engine"></a>
-<a class="h" href="https://github.com/HermeticaLabs/caelis-engine#built-with-caelis-engine" target="_blank" rel="noopener" title="Hermetica Labs"><img src="../../brand/hermetica-mark-cyan.svg" alt="Hermetica Labs"></a></span></div>
+<a class="e" href="https://github.com/hermeticalabs/caelis-engine" target="_blank" rel="noopener" title="Caelis Engine"><img src="../../brand/caelis-engine-light.svg" alt="Caelis Engine"></a>
+<a class="h" href="https://github.com/HermeticaLabs/caelis-engine#built-with-caelis-engine" target="_blank" rel="noopener" title="Hermetica Labs"><img src="../../brand/hermetica-light.svg" alt="Hermetica Labs"></a></span></div>
 <div class="fline">Hermetica Labs · Caeliscope · AGPL-3.0-or-later</div></footer><script>${SEARCH_JS}</script></body></html>`;
 }
 

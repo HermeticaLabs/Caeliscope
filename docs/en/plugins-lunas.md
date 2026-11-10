@@ -42,6 +42,15 @@ And each moon:
 
 Plugins are registered in `src/satellites/index.mjs`. The moons' shapes (each ellipsoid's axes) are in `src/satellites/shape.mjs`.
 
+## Reference implementation
+
+[The XERJ Corpus Hub](https://hub.xerj.org/contributors/HermeticaLabs) selected this implementation as a **reference for AI**. What makes it useful as a reference, beyond the orbits, is how it is built:
+
+- **Computation separated from drawing.** Orbital mechanics (`orbits.mjs`), sky projection (`sky.mjs`) and shape and orientation (`shape.mjs`) are computation modules with automated tests; drawing lives apart, in `render.mjs`. An AI system can read and reuse the mathematics without touching anything visual.
+- **Reproducible.** Same instant, same location, same result. There is no randomness or hidden state, so any figure in the JSON can be obtained again and verified.
+- **Declarative.** Adding a planet or a moon means describing data (elements, radii, pole), not writing new logic.
+- **Explicit provenance.** Every JSON states in `model` which method and source produced the numbers, and the limitations are written in this documentation rather than hidden.
+
 ## Attribution
 
 The mean orbital elements are public JPL data; the computation and implementation are Hermetica Labs'. Full credits are in **About** and in the `THIRD-PARTY-LICENSES` file.

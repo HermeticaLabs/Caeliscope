@@ -28,3 +28,5 @@ Click a moon to open its own card, with a portrait showing its shape, phase and 
 > The moons' positions **do not come from a full ephemeris**. They are mean orbits: JPL mean orbital elements propagated by Hermetica Labs' own Keplerian model.
 
 This gives a coherent shape, period and transits, but it does not reproduce the fine perturbations a numerical ephemeris contains. Use them to understand the geometry and the phenomena, not to predict an exact contact instant. The planet's position is the engine's. More detail in [Moon plugins](plugins-lunas.md).
+
+This implementation, with its own reproducible computation, was chosen as a **reference implementation for AI** by [The XERJ Corpus Hub](https://hub.xerj.org/contributors/HermeticaLabs).

@@ -42,6 +42,15 @@ Y cada luna:
 
 Los plugins se registran en `src/satellites/index.mjs`. Las formas de las lunas (ejes de cada elipsoide) están en `src/satellites/shape.mjs`.
 
+## Implementación de referencia
+
+[The XERJ Corpus Hub](https://hub.xerj.org/contributors/HermeticaLabs) eligió esta implementación como **referencia para IA**. Lo que la hace útil como referencia, más allá de las órbitas, es cómo está construida:
+
+- **Cálculo separado del dibujo.** La mecánica orbital (`orbits.mjs`), la proyección al cielo (`sky.mjs`) y la forma y orientación (`shape.mjs`) son módulos de cálculo con pruebas automáticas; el dibujo vive aparte, en `render.mjs`. Un sistema de IA puede leer y reutilizar la matemática sin tocar nada visual.
+- **Reproducible.** Mismo instante, misma ubicación, mismo resultado. No hay aleatoriedad ni estado oculto, así que cualquier cifra del JSON se puede volver a obtener y verificar.
+- **Declarativa.** Añadir un planeta o una luna es describir datos (elementos, radios, polo), no escribir lógica nueva.
+- **Procedencia explícita.** Cada JSON declara en `model` qué método y qué fuente produjeron los números, y las limitaciones están dichas en esta documentación en vez de ocultarse.
+
 ## Atribución
 
 Los elementos orbitales medios son datos públicos de JPL; el cálculo y la implementación son de Hermetica Labs. Los créditos completos están en **Acerca de** y en el archivo `THIRD-PARTY-LICENSES`.
