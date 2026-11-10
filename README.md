@@ -2,7 +2,7 @@
 
 [![Live demo](https://img.shields.io/badge/live%20demo-open-5edfe5?style=flat)](https://hermeticalabs.github.io/Caeliscope/)
 [![CI](https://github.com/HermeticaLabs/Caeliscope/actions/workflows/ci.yml/badge.svg)](https://github.com/HermeticaLabs/Caeliscope/actions/workflows/ci.yml)
-[![XERJ Corpus Hub](https://img.shields.io/badge/XERJ%20Corpus%20Hub-indexed-6f42c1?style=flat)](https://hub.xerj.org/corpus/hermeticalabs--caeliscope)
+[![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/HermeticaLabs/badge.svg)](https://hub.xerj.org/contributors/HermeticaLabs)
 [![License: AGPL v3+](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![Powered by Caelis Engine](https://img.shields.io/badge/powered%20by-Caelis%20Engine%204.0.13-dcb450.svg)](https://github.com/HermeticaLabs/caelis-engine)
 [![GitHub stars](https://img.shields.io/github/stars/HermeticaLabs/Caeliscope?style=flat)](https://github.com/HermeticaLabs/Caeliscope/stargazers)
