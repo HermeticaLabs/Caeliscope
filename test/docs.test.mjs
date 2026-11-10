@@ -25,10 +25,15 @@ test('sitio completo: páginas, índice de búsqueda, enlaces internos válidos'
   assert.ok(built.length >= 8);
   assert.ok(existsSync(join(out, 'index.html')) && existsSync(join(out, 'es', 'search.json')));
   const idx = JSON.parse(readFileSync(join(out, 'es', 'search.json'), 'utf8')); assert.ok(idx.length > 10);
-  for (const f of readdirSync(join(out, 'es')).filter((x) => x.endsWith('.html'))) {
-    const h = readFileSync(join(out, 'es', f), 'utf8');
+  for (const lang of ['es', 'en']) for (const f of readdirSync(join(out, lang)).filter((x) => x.endsWith('.html'))) {
+    const h = readFileSync(join(out, lang, f), 'utf8');
     assert.ok(!/gmail/i.test(h));
-    for (const m of h.matchAll(/href="([^"#:]+\.html)(#[^"]*)?"/g)) assert.ok(existsSync(join(out, 'es', m[1])), `${f} enlaza a ${m[1]}`);
+    for (const m of h.matchAll(/href="([^"#:]+\.html)(#[^"]*)?"/g)) assert.ok(existsSync(join(out, lang, m[1])), `${lang}/${f} enlaza a ${m[1]}`);
     for (const m of h.matchAll(/href="#([^"]+)"/g)) assert.ok(h.includes(`id="${m[1]}"`), `${f}: ancla ${m[1]}`);
   }
+});
+
+test('es y en tienen las mismas páginas (el selector de idioma las enlaza por nombre)', () => {
+  const a = readdirSync('docs/es').filter((x) => x.endsWith('.md')).sort(), b = readdirSync('docs/en').filter((x) => x.endsWith('.md')).sort();
+  assert.deepEqual(a, b);
 });
