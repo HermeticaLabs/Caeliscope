@@ -129,6 +129,8 @@ Los datos y recursos de terceros (catálogo estelar, texturas, teselas, tipograf
 
 Se agradecen issues y pull requests; ver [`CONTRIBUTING.md`](CONTRIBUTING.md). Para reportes de seguridad ver [`SECURITY.md`](SECURITY.md).
 
+Quién ha probado, difundido o referenciado Caeliscope está registrado en [Partners, Community & Recognition](COMMUNITY/README.md).
+
 English: [`README.md`](README.md)
 
 <p align="center">

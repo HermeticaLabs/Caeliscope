@@ -1,7 +1,7 @@
 ---
 title: Community and recognition
 order: 11
-description: Who has featured or recognised Caeliscope: El Gran Observatorio and the XERJ Corpus Hub.
+description: Who has featured or recognised Caeliscope (El Gran Observatorio and the XERJ Corpus Hub).
 ---
 Caeliscope grows through independent development, testing and the visibility that other people and projects give it. This page documents, with verifiable links, the external recognitions Hermetica Labs has received. It is not a certification: a mention or an inclusion shows that the project is known and referenced, not that anyone has validated its astronomical algorithms.
 
@@ -16,6 +16,10 @@ Its guide to astronomy apps includes a section about Caeliscope: [Caeliscope · 
 [The XERJ Corpus Hub](https://hub.xerj.org/) is a shared reference corpus infrastructure for AI agents: it catalogues open-source repositories so that they can be found and cited with their attribution.
 
 Hermetica Labs takes part as a contributor: [Hermetica Labs on the XERJ Corpus Hub](https://hub.xerj.org/contributors/HermeticaLabs). Inclusion documents that the repository belongs to that corpus; it does not mean that XERJ has certified the calculations of Caelis Engine. See also [why the moon plugins were chosen as a reference](plugins-lunas.md).
+
+## Full directory
+
+The detailed profiles of partners, testers and contributors, with their official badges, are in the repository: [Caeliscope Partners, Community & Recognition](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/README.md).
 
 ## Where to find it in the app
 

@@ -93,13 +93,14 @@ blockquote{margin:1.2em 0;padding:.2em 1.1em;border-left:3px solid var(--cy);bac
 img{max-width:100%;border-radius:10px;border:1px solid var(--line)}hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .pn{display:flex;justify-content:space-between;gap:16px;margin-top:3em;padding-top:1.2em;border-top:1px solid var(--line)}.pn>span{flex:1}.pn a{display:block}.pn>span:last-child{text-align:right}.pn small{display:block;white-space:nowrap;color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
 footer{max-width:1280px;margin:0 auto;padding:0 22px 36px;color:var(--dim);font-size:13px}
-.fbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px 16px;padding-top:16px;border-top:1px solid var(--line)}
+.fbar{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px 16px;padding-top:16px;border-top:1px solid var(--line)}
 .fbar>a.mail{color:var(--cy);font-size:15px}
 .flinks{display:flex;align-items:center;gap:14px;margin-left:auto}.flinks a{display:block;line-height:0;border-radius:8px;transition:transform .15s,filter .15s}.flinks a:hover{transform:translateY(-2px);filter:brightness(1.15)}
-.flinks img{height:38px;width:auto;display:block;border:0;border-radius:0}.flinks .e img{height:44px}.flinks .h img{height:46px}
+.fbar .flinks{margin-bottom:-8px}.fcomm{display:flex;flex-direction:column;gap:6px}.fct{color:#dcb450;font-size:9px;font-weight:500;letter-spacing:.16em}.fcrow{display:flex;gap:10px}.fcrow a{display:block;line-height:0;transition:transform .15s,filter .15s}.fcrow a:hover{transform:translateY(-2px);filter:brightness(1.15)}.fcrow img{height:28px;width:auto;display:block;border:0;border-radius:7px}
+.flinks img{height:34px;width:auto;display:block;border:0;border-radius:0}.flinks .g img{height:28px}.flinks .e img{height:40px}.flinks .h img{height:44px}
 .fline{text-align:center;margin-top:18px}
 @media(max-width:1000px){.wrap{grid-template-columns:minmax(0,1fr);gap:18px}nav.toc{display:none}nav.side{position:static;max-height:none;border-bottom:1px solid var(--line);padding-bottom:12px}}
-@media(max-width:560px){#q{width:auto;min-width:80px;flex:1}.btn.app{display:none}header{gap:8px;padding:8px 12px}header img{height:34px}.flinks{flex-wrap:wrap;justify-content:flex-end;gap:8px 12px}.flinks img{height:26px!important}.flinks .e img{height:30px!important}.flinks .h img{height:34px!important}.btn{padding:6px 9px;font-size:13px}}`;
+@media(max-width:560px){#q{width:auto;min-width:80px;flex:1}.btn.app{display:none}header{gap:8px;padding:8px 12px}header img{height:34px}.flinks{flex-wrap:wrap;justify-content:flex-end;gap:8px 12px}.flinks img{height:24px!important}.flinks .g img{height:20px!important}.fcrow img{height:24px!important}.flinks .e img{height:28px!important}.flinks .h img{height:34px!important}.btn{padding:6px 9px;font-size:13px}}`;
 
 const SEARCH_JS = `(()=>{const q=document.getElementById('q'),r=document.getElementById('res');let ix=null;
 const load=()=>ix||(ix=fetch('search.json').then(x=>x.json()).catch(()=>[]));
@@ -125,8 +126,11 @@ export function pageHtml({ lang, meta, html, heads, pages, file, other, prev, ne
 <input id="q" type="search" placeholder="${u.search} ( / )" autocomplete="off" aria-label="${u.search}">${sw}<a class="btn app" href="../../">${u.app}</a></header>
 <div id="res" data-none="${u.none}"></div>
 <div class="wrap"><nav class="side"><h4>${u.docs}</h4>${nav}</nav><main>${html}${pn}</main>${toc}</div>
-<footer><div class="fbar"><a class="mail" href="mailto:hermeticalabs.dev@proton.me">${u.contact}</a><span class="flinks">
-<a href="https://github.com/HermeticaLabs/Caeliscope" target="_blank" rel="noopener" title="GitHub · Caeliscope"><img src="../../brand/about-github.png" alt="GitHub / Caeliscope"></a>
+<footer><div class="fbar"><div class="fcomm"><a class="fct" href="https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/README.md" target="_blank" rel="noopener">CAELISCOPE PARTNERS, COMMUNITY &amp; RECOGNITION</a><span class="fcrow">
+<a href="https://elgranobservatorio.com/" target="_blank" rel="noopener" title="El Gran Observatorio"><img src="../../brand/elgranobservatorio.png" alt="El Gran Observatorio"></a>
+<a href="https://hub.xerj.org/" target="_blank" rel="noopener" title="XERJ Corpus Hub"><img src="../../brand/xerj.png" alt="XERJ Corpus Hub"></a></span></div><span class="flinks">
+<a class="i" href="inicio.html" title="Caeliscope"><img src="../../brand/caeliscope-icon.svg" alt="Caeliscope"></a>
+<a class="g" href="https://github.com/HermeticaLabs/Caeliscope" target="_blank" rel="noopener" title="GitHub · Caeliscope"><img src="../../brand/about-github.png" alt="GitHub / Caeliscope"></a>
 <a class="e" href="https://github.com/hermeticalabs/caelis-engine" target="_blank" rel="noopener" title="Caelis Engine"><img src="../../brand/caelis-engine-light.svg" alt="Caelis Engine"></a>
 <a class="h" href="https://github.com/HermeticaLabs/caelis-engine#built-with-caelis-engine" target="_blank" rel="noopener" title="Hermetica Labs"><img src="../../brand/hermetica-light.svg" alt="Hermetica Labs"></a></span></div>
 <div class="fline">Hermetica Labs · Caeliscope · AGPL-3.0-or-later</div></footer><script>${SEARCH_JS}</script></body></html>`;

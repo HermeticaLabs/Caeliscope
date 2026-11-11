@@ -129,6 +129,8 @@ Third-party data and assets (star catalogue, textures, tiles, fonts) keep their 
 
 Issues and pull requests are welcome; see [`CONTRIBUTING.md`](CONTRIBUTING.md). For security reports see [`SECURITY.md`](SECURITY.md).
 
+Who has tested, covered or referenced Caeliscope is recorded in [Partners, Community & Recognition](COMMUNITY/README.md).
+
 Español: [`README.es.md`](README.es.md)
 
 <p align="center">
