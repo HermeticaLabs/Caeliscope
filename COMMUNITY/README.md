@@ -23,6 +23,7 @@ A person or project can appear in more than one category; each type of contribut
 - **Verifiable identity and evidence.** Every entry links to a public reference.
 - **Consent.** Biographical data or photographs are published only with the person's authorisation.
 - **No endorsement implied.** A badge recognises a documented contribution. It is not a technical certification, a commercial approval, or an endorsement by the recognised party of the whole ecosystem.
+- **"Since" date.** The profile of every partner, tester or contributor shows, next to its relationship with Caeliscope, a box with the date it began (`since YYYY-MM-DD`). Research & Corpus entries do not carry it.
 - **Contribution ≠ partnership ≠ external recognition.** An editorial mention is not presented as a commercial alliance, and inclusion in an external corpus is not presented as a contribution to Caeliscope.
 
 ## Official badge

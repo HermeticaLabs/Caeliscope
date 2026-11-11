@@ -2,7 +2,7 @@
 
 [English](el-gran-observatorio.md) · Español
 
-**Official Caeliscope Beta Testing Partner**
+**Official Caeliscope Beta Testing Partner** <kbd><b>desde 2026-11-11</b></kbd>
 
 [![Official Caeliscope Beta Testing Partner](https://img.shields.io/badge/Caeliscope-Official%20Beta%20Testing%20Partner-0e7490?style=flat-square&labelColor=000000)](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.es.md)
 

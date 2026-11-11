@@ -23,6 +23,7 @@ Una persona o proyecto puede aparecer en más de una categoría; cada tipo de co
 - **Identidad y evidencia verificables.** Cada entrada enlaza a una referencia pública.
 - **Consentimiento.** Los datos biográficos o fotografías se publican solo con autorización de la persona.
 - **Sin respaldo implícito.** Una insignia reconoce una contribución documentada. No es una certificación técnica, una aprobación comercial ni un respaldo de la parte reconocida a todo el ecosistema.
+- **Fecha "since".** La ficha de cada partner, tester o colaborador muestra, junto a su vínculo con Caeliscope, un recuadro con la fecha de inicio (`desde AAAA-MM-DD`). Las entradas de Research & Corpus no la llevan.
 - **Contribución ≠ alianza ≠ reconocimiento externo.** Una mención editorial no se presenta como alianza comercial, y la inclusión en un corpus externo no se presenta como contribución a Caeliscope.
 
 ## Insignia oficial
