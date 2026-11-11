@@ -1,5 +1,5 @@
 // Contenido de la ventana "Acerca de" (se abre con el logo): qué es, privacidad, créditos, controles y compatibilidad. Texto plano en EN/ES, sin dependencias del navegador.
-export const ABOUT_VERSION = '1.53.0';
+export const ABOUT_VERSION = '1.53.2';
 export const REPO = 'https://github.com/HermeticaLabs/Caeliscope';
 export const ENGINE_REPO = 'https://github.com/hermeticalabs/caelis-engine';
 export const HERMETICA_LINK = `${ENGINE_REPO}#built-with-caelis-engine`;
@@ -16,6 +16,10 @@ export const ABOUT = {
     contact: 'Contact Us',
     install: 'Install as an app',
     altDocs: 'Caeliscope documentation',
+    community: 'CAELISCOPE COMMUNITY & RECOGNITION',
+    altComm: 'Caeliscope Community & Recognition directory',
+    altGO: 'El Gran Observatorio (website)',
+    altXerj: 'XERJ Corpus Hub',
     altRepo: 'Caeliscope on GitHub',
     altEngine: 'Caelis Engine on GitHub',
     altHerm: 'Hermetica Labs: built with Caelis Engine',
@@ -48,6 +52,10 @@ export const ABOUT = {
     contact: 'Contáctanos',
     install: 'Instalar como app',
     altDocs: 'Documentación de Caeliscope',
+    community: 'CAELISCOPE COMMUNITY & RECOGNITION',
+    altComm: 'Directorio Caeliscope Community & Recognition',
+    altGO: 'El Gran Observatorio (sitio web)',
+    altXerj: 'XERJ Corpus Hub',
     altRepo: 'Caeliscope en GitHub',
     altEngine: 'Caelis Engine en GitHub',
     altHerm: 'Hermetica Labs: construido con Caelis Engine',

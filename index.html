@@ -85,12 +85,14 @@
   #abBody { overflow: auto; flex: 1 1 auto; padding-right: 6px; font-size: calc(13px * var(--ts)); line-height: 1.55; color: #d6def0; border-top: 1px solid rgba(220, 180, 80, .22); }
   #abBody h3 { margin: 14px 0 4px; font-size: calc(11px * var(--ts)); font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--oro); }
   #abBody p { margin: 0 0 7px; } #abBody a { color: var(--cian); }
-  .abfoot { flex: none; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(220, 180, 80, .22); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; }
+  .abfoot { flex: none; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(220, 180, 80, .22); display: flex; flex-direction: column; gap: 12px; } .abbot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; }
   #cPort { display: block; margin: 2px auto 8px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.05), transparent 72%); }
   .abside { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; } .abinst { padding: 3px 12px; font-size: calc(12px * var(--ts)); border-color: rgba(94,223,229,.45); color: var(--cian); cursor: pointer; } .abinst:hover { background: rgba(94,223,229,.12); }
+  .abtop { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; } .abcomm { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; } .abct { color: var(--oro); font-size: calc(10px * var(--ts)); font-weight: 500; letter-spacing: .2em; text-decoration: none; text-align: center; } .abct:hover, .abct:focus-visible { text-decoration: underline; outline: none; }
+  .abcrow { display: flex; align-items: center; gap: 14px; } .abcrow a { display: block; line-height: 0; border-radius: 8px; transition: transform .15s, filter .15s; } .abcrow a:hover, .abcrow a:focus-visible { transform: translateY(-1px); filter: drop-shadow(0 0 7px rgba(94,223,229,.55)); outline: none; } .abcrow img { height: 34px; width: auto; display: block; border-radius: 8px; } #abRepo img { height: 28px; border-radius: 0; } .abrepo { display: block; line-height: 0; border-radius: 14px; transition: transform .15s, filter .15s; } .abrepo:hover, .abrepo:focus-visible { transform: translateY(-1px); filter: drop-shadow(0 0 7px rgba(94,223,229,.55)); outline: none; } .abrepo img { height: 28px; width: auto; display: block; }
   .abmail { color: var(--cian); font-size: calc(13px * var(--ts)); text-decoration: none; letter-spacing: .04em; } .abmail:hover { text-decoration: underline; }
   .ablinks { display: flex; align-items: center; gap: 14px; margin-left: auto; } .ablinks a { display: block; line-height: 0; border-radius: 8px; transition: transform .15s, filter .15s; } .ablinks a:hover, .ablinks a:focus-visible { transform: translateY(-1px); filter: drop-shadow(0 0 7px rgba(94,223,229,.55)); outline: none; }
-  @media (max-width: 560px) { #aboutWin { padding: 14px 16px; } .ablinks { flex-wrap: wrap; justify-content: flex-end; gap: 8px 12px; } .ablinks img { height: 26px !important; } #abEngine img { height: 30px !important; } #abHerm img { height: 34px !important; } }
+  @media (max-width: 560px) { #aboutWin { padding: 14px 16px; } .ablinks { flex-wrap: wrap; justify-content: flex-end; gap: 8px 12px; } .ablinks img { height: 26px !important; } .abcrow img { height: 30px !important; } #abRepo img { height: 24px !important; } .abtop { justify-content: flex-start; } #abEngine img { height: 30px !important; } #abHerm img { height: 34px !important; } }
   .ablinks img { height: 38px; width: auto; display: block; } #abEngine img { height: 44px; } #abHerm img { height: 46px; }
   #info { top: calc(12px + var(--pw) * 0.245 + 12px); left: 14px; padding: 10px 14px; width: calc(250px * var(--ts)); }
   #side { top: 14px; right: 14px; padding: 10px 14px; width: calc(262px * var(--ts)); z-index: 8; display: flex; flex-direction: column; max-height: calc(100vh - var(--barH, 170px) - 52px); box-sizing: content-box; }
@@ -310,13 +312,24 @@
   <div class="abhead"><img src="/brand/caeliscope-logo.svg" alt="Caeliscope" draggable="false"></div>
   <div id="abBody"></div>
   <div class="abfoot">
-    <span class="abside"><a id="abContact" class="abmail" href="mailto:hermeticalabs.dev@proton.me"></a><button id="abInstall" class="abinst" type="button" hidden></button></span>
-    <span class="ablinks">
-      <a id="abDocs" href="docs/" target="_blank" rel="noopener"><img src="/brand/caeliscope-icon.svg" alt="" draggable="false"></a>
-      <a id="abRepo" href="https://github.com/HermeticaLabs/Caeliscope" target="_blank" rel="noopener"><img src="/brand/about-github.png" alt="" draggable="false"></a>
-      <a id="abEngine" href="https://github.com/hermeticalabs/caelis-engine" target="_blank" rel="noopener"><img src="/brand/caelis-engine-light.svg" alt="" draggable="false"></a>
-      <a id="abHerm" href="https://github.com/HermeticaLabs/caelis-engine#built-with-caelis-engine" target="_blank" rel="noopener"><img src="/brand/hermetica-light.svg" alt="" draggable="false"></a>
-    </span>
+    <div class="abtop">
+      <div class="abcomm">
+        <a id="abCommTitle" class="abct" href="https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/README.md" target="_blank" rel="noopener"></a>
+        <span class="abcrow">
+          <a id="abGO" href="https://elgranobservatorio.com/" target="_blank" rel="noopener"><img src="/brand/elgranobservatorio.png" alt="" draggable="false"></a>
+          <a id="abXerj" href="https://hub.xerj.org/" target="_blank" rel="noopener"><img src="/brand/xerj.png" alt="" draggable="false"></a>
+        </span>
+      </div>
+      <span class="ablinks">
+        <a id="abDocs" href="docs/" target="_blank" rel="noopener"><img src="/brand/caeliscope-icon.svg" alt="" draggable="false"></a>
+        <a id="abEngine" href="https://github.com/hermeticalabs/caelis-engine" target="_blank" rel="noopener"><img src="/brand/caelis-engine-light.svg" alt="" draggable="false"></a>
+        <a id="abHerm" href="https://github.com/HermeticaLabs/caelis-engine#built-with-caelis-engine" target="_blank" rel="noopener"><img src="/brand/hermetica-light.svg" alt="" draggable="false"></a>
+      </span>
+    </div>
+    <div class="abbot">
+      <span class="abside"><button id="abInstall" class="abinst" type="button" hidden></button></span>
+      <a id="abRepo" class="abrepo" href="https://github.com/HermeticaLabs/Caeliscope" target="_blank" rel="noopener"><img src="/brand/about-github.png" alt="" draggable="false"></a>
+    </div>
   </div>
 </div>
 <div id="aboutVeil" hidden></div>

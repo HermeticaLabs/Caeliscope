@@ -35,3 +35,4 @@ Sin conexión todo funciona, salvo el detalle satelital del globo, que viene de 
 - [Trayectorias y geometrías](trayectorias-y-geometrias.md): estelas, rosetas, analemas y ciclos.
 - [Eventos y eclipses](eventos-y-eclipses.md): encontrar el próximo eclipse y entender la guía de sombra.
 - [Opciones](opciones.md): capas, paisaje, proyección y accesibilidad.
+- [Comunidad y reconocimiento](comunidad.md): quién ha difundido Caeliscope.

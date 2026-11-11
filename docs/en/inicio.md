@@ -35,3 +35,4 @@ Offline, everything works except the satellite detail of the globe, which comes 
 - [Trajectories and geometries](trayectorias-y-geometrias.md): star trails, rosettes, analemmas and cycles.
 - [Events and eclipses](eventos-y-eclipses.md): finding the next eclipse and understanding the shadow guide.
 - [Options](opciones.md): layers, landscape, projection and accessibility.
+- [Community and recognition](comunidad.md): who has featured Caeliscope.
