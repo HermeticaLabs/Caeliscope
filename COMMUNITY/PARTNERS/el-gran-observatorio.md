@@ -1,8 +1,12 @@
 # El Gran Observatorio
 
+English · [Español](el-gran-observatorio.es.md)
+
 **Caeliscope Partner · Official Beta Tester**
 
 [![Caeliscope Partner / Official Beta Tester](https://img.shields.io/badge/Caeliscope-Partner%20%2F%20Official%20Beta%20Tester-0e7490?style=flat-square&labelColor=000000)](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.md)
+
+<img src="../img/el-gran-observatorio.png" alt="El Gran Observatorio" width="96">
 
 ## About
 
@@ -16,6 +20,11 @@
 | **Contribution** | Testing of Caeliscope and editorial coverage of the project for the astronomy community. |
 | **Published reference** | [Caeliscope · Hermetica Labs](https://elgranobservatorio.com/apps-astronomia/#Caeliscope_Hermetica_Labs), section of its guide to astronomy apps. |
 | **Website** | [elgranobservatorio.com](https://elgranobservatorio.com/) |
+
+## Social networks
+
+- [Facebook](https://www.facebook.com/elgranobservatorio)
+- [Pinterest](https://es.pinterest.com/granobservatorio/)
 
 ## Recognition
 

@@ -1,5 +1,7 @@
 # Testers
 
+English · [Español](README.es.md)
+
 People and projects who test Caeliscope or Caelis Engine, report problems and give technical feedback.
 
 | Tester | Role | Profile |

@@ -1,5 +1,7 @@
 # Contributors
 
+English · [Español](README.es.md)
+
 Individuals, organizations and independent projects that contribute to the visibility, documentation, evaluation and development of Caeliscope. Recognition is organised by type of contribution.
 
 ## Media & Editorial

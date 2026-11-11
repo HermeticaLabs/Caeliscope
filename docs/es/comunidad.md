@@ -19,7 +19,7 @@ Hermetica Labs participa como colaborador: [Hermetica Labs en el XERJ Corpus Hub
 
 ## Directorio completo
 
-Las fichas detalladas de socios, testers y colaboradores, con sus insignias oficiales, están en el repositorio: [Caeliscope Partners, Community & Recognition](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/README.md).
+Las fichas detalladas de socios, testers y colaboradores, con sus insignias oficiales, están en el repositorio: [Caeliscope Partners, Community & Recognition](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/README.es.md).
 
 ## Dónde verlo en la app
 

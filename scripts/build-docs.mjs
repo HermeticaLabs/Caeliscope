@@ -126,7 +126,7 @@ export function pageHtml({ lang, meta, html, heads, pages, file, other, prev, ne
 <input id="q" type="search" placeholder="${u.search} ( / )" autocomplete="off" aria-label="${u.search}">${sw}<a class="btn app" href="../../">${u.app}</a></header>
 <div id="res" data-none="${u.none}"></div>
 <div class="wrap"><nav class="side"><h4>${u.docs}</h4>${nav}</nav><main>${html}${pn}</main>${toc}</div>
-<footer><div class="fbar"><div class="fcomm"><a class="fct" href="https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/README.md" target="_blank" rel="noopener">CAELISCOPE PARTNERS, COMMUNITY &amp; RECOGNITION</a><span class="fcrow">
+<footer><div class="fbar"><div class="fcomm"><a class="fct" href="https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/README${lang === 'es' ? '.es' : ''}.md" target="_blank" rel="noopener">CAELISCOPE PARTNERS, COMMUNITY &amp; RECOGNITION</a><span class="fcrow">
 <a href="https://elgranobservatorio.com/" target="_blank" rel="noopener" title="El Gran Observatorio"><img src="../../brand/elgranobservatorio.png" alt="El Gran Observatorio"></a>
 <a href="https://hub.xerj.org/" target="_blank" rel="noopener" title="XERJ Corpus Hub"><img src="../../brand/xerj.png" alt="XERJ Corpus Hub"></a></span></div><span class="flinks">
 <a class="i" href="inicio.html" title="Caeliscope"><img src="../../brand/caeliscope-icon.svg" alt="Caeliscope"></a>

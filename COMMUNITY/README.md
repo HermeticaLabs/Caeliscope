@@ -1,8 +1,10 @@
 # Caeliscope Partners, Community & Recognition
 
+English · [Español](README.es.md)
+
 *An independent recognition directory by Hermetica Labs.*
 
-Caeliscope is built through independent research, technical development, testing and the visibility that people and projects give it. This directory records, with verifiable references, who has contributed and how. (Español: cada ficha enlaza a la evidencia pública de la contribución.)
+Caeliscope is built through independent research, technical development, testing and the visibility that people and projects give it. This directory records, with verifiable references, who has contributed and how.
 
 ## Categories
 
