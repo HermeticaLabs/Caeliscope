@@ -6,6 +6,6 @@ Organizaciones, proyectos o personas con una colaboración acordada con Hermetic
 
 | Partner | Rol | Ficha |
 |---|---|---|
-| El Gran Observatorio | Partner · Official Beta Tester | [Ver ficha](el-gran-observatorio.es.md) |
+| El Gran Observatorio | Official Beta Testing Partner | [Ver ficha](el-gran-observatorio.es.md) |
 
 ← [Comunidad y reconocimiento](../README.es.md)

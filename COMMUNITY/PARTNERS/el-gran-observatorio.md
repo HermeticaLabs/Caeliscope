@@ -2,9 +2,9 @@
 
 English · [Español](el-gran-observatorio.es.md)
 
-**Caeliscope Partner · Official Beta Tester**
+**Official Caeliscope Beta Testing Partner**
 
-[![Caeliscope Partner / Official Beta Tester](https://img.shields.io/badge/Caeliscope-Partner%20%2F%20Official%20Beta%20Tester-0e7490?style=flat-square&labelColor=000000)](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.md)
+[![Official Caeliscope Beta Testing Partner](https://img.shields.io/badge/Caeliscope-Official%20Beta%20Testing%20Partner-0e7490?style=flat-square&labelColor=000000)](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.md)
 
 <img src="../img/el-gran-observatorio.png" alt="El Gran Observatorio" width="96">
 
@@ -16,8 +16,8 @@ English · [Español](el-gran-observatorio.es.md)
 
 | | |
 |---|---|
-| **Roles** | Partner · Official Beta Tester · Media & Editorial Outreach |
-| **Contribution** | Testing of Caeliscope and editorial coverage of the project for the astronomy community. |
+| **Roles** | Official Beta Testing Partner · Media & Editorial Outreach |
+| **Contribution** | Editorial coverage of Caeliscope (a dedicated section and analysis in its guide to astronomy apps) and, as a beta testing partner, feedback during the development of new features. |
 | **Published reference** | [Caeliscope · Hermetica Labs](https://elgranobservatorio.com/apps-astronomia/#Caeliscope_Hermetica_Labs), section of its guide to astronomy apps. |
 | **Website** | [elgranobservatorio.com](https://elgranobservatorio.com/) |
 
@@ -28,7 +28,7 @@ English · [Español](el-gran-observatorio.es.md)
 
 ## Recognition
 
-Recognised by **Hermetica Labs** for its contribution to the testing and visibility of Caeliscope. This recognition documents a collaboration; it is not a technical certification or a commercial approval.
+Recognised by **Hermetica Labs** for its editorial coverage of Caeliscope and for taking part, as a beta testing partner, in its evolution. This recognition documents a collaboration; it is not a technical certification or a commercial approval.
 
 ## Use your badge
 
@@ -37,13 +37,13 @@ Copy one of these snippets into your website, GitHub profile or portfolio. The b
 Markdown:
 
 ```markdown
-[![Caeliscope Partner / Official Beta Tester](https://img.shields.io/badge/Caeliscope-Partner%20%2F%20Official%20Beta%20Tester-0e7490?style=flat-square&labelColor=000000)](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.md)
+[![Official Caeliscope Beta Testing Partner](https://img.shields.io/badge/Caeliscope-Official%20Beta%20Testing%20Partner-0e7490?style=flat-square&labelColor=000000)](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.md)
 ```
 
 HTML:
 
 ```html
-<a href="https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.md"><img alt="Caeliscope Partner / Official Beta Tester" src="https://img.shields.io/badge/Caeliscope-Partner%20%2F%20Official%20Beta%20Tester-0e7490?style=flat-square&labelColor=000000"></a>
+<a href="https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.md"><img alt="Official Caeliscope Beta Testing Partner" src="https://img.shields.io/badge/Caeliscope-Official%20Beta%20Testing%20Partner-0e7490?style=flat-square&labelColor=000000"></a>
 ```
 
 ---

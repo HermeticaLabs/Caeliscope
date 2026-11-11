@@ -6,6 +6,8 @@ People and projects who test Caeliscope or Caelis Engine, report problems and gi
 
 | Tester | Role | Profile |
 |---|---|---|
-| El Gran Observatorio | Official Beta Tester | [View profile](../PARTNERS/el-gran-observatorio.md) |
+| — | No registered testers yet | — |
+
+Beta testing *partners* with an agreed collaboration are listed under [Partners](../PARTNERS/README.md).
 
 ← [Community & Recognition](../README.md)

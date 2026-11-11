@@ -125,6 +125,14 @@ The names **Caeliscope**, **Caelis Engine** and **Hermetica Labs** and their log
 
 Third-party data and assets (star catalogue, textures, tiles, fonts) keep their own licenses; see [`NOTICE.md`](NOTICE.md) and [`public/THIRD-PARTY-LICENSES.txt`](public/THIRD-PARTY-LICENSES.txt).
 
+## Caeliscope Beta Testing Partners
+
+Independent projects and communities that take part in the testing and evolution of Caeliscope. Each partner has a permanent profile in the [Partners, Community & Recognition](COMMUNITY/README.md) directory.
+
+| Partner | Distinction | Website |
+|---|---|---|
+| [El Gran Observatorio](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.md) | [![Official Caeliscope Beta Testing Partner](https://img.shields.io/badge/Caeliscope-Official%20Beta%20Testing%20Partner-0e7490?style=flat-square&labelColor=000000)](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.md) | [elgranobservatorio.com](https://elgranobservatorio.com/) |
+
 ## Contributing
 
 Issues and pull requests are welcome; see [`CONTRIBUTING.md`](CONTRIBUTING.md). For security reports see [`SECURITY.md`](SECURITY.md).

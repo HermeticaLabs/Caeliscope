@@ -29,13 +29,13 @@ A person or project can appear in more than one category; each type of contribut
 
 Partners and testers can copy the badge from their own profile and place it on their website, GitHub or portfolio. It always links back to their profile in this directory.
 
-[![Caeliscope Partner / Official Beta Tester](https://img.shields.io/badge/Caeliscope-Partner%20%2F%20Official%20Beta%20Tester-0e7490?style=flat-square&labelColor=000000)](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.md)
+[![Official Caeliscope Beta Testing Partner](https://img.shields.io/badge/Caeliscope-Official%20Beta%20Testing%20Partner-0e7490?style=flat-square&labelColor=000000)](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.md)
 
 ## Directory
 
 | Name | Category | Profile |
 |---|---|---|
-| El Gran Observatorio | Partner · Official Beta Tester · Media & Editorial | [View profile](PARTNERS/el-gran-observatorio.md) |
+| El Gran Observatorio | Official Beta Testing Partner · Media & Editorial | [View profile](PARTNERS/el-gran-observatorio.md) |
 | XERJ Corpus Hub | Research & Corpus | [View entry](RESEARCH/xerj-corpus-hub.md) |
 
 ---

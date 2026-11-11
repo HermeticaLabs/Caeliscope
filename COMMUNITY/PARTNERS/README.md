@@ -6,6 +6,6 @@ Organizations, projects or people with an agreed collaboration with Hermetica La
 
 | Partner | Role | Profile |
 |---|---|---|
-| El Gran Observatorio | Partner · Official Beta Tester | [View profile](el-gran-observatorio.md) |
+| El Gran Observatorio | Official Beta Testing Partner | [View profile](el-gran-observatorio.md) |
 
 ← [Community & Recognition](../README.md)

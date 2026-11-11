@@ -29,13 +29,13 @@ Una persona o proyecto puede aparecer en más de una categoría; cada tipo de co
 
 Los partners y testers pueden copiar la insignia desde su propia ficha y ponerla en su sitio web, GitHub o portafolio. Siempre enlaza a su ficha en este directorio.
 
-[![Caeliscope Partner / Official Beta Tester](https://img.shields.io/badge/Caeliscope-Partner%20%2F%20Official%20Beta%20Tester-0e7490?style=flat-square&labelColor=000000)](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.es.md)
+[![Official Caeliscope Beta Testing Partner](https://img.shields.io/badge/Caeliscope-Official%20Beta%20Testing%20Partner-0e7490?style=flat-square&labelColor=000000)](https://github.com/HermeticaLabs/Caeliscope/blob/main/COMMUNITY/PARTNERS/el-gran-observatorio.es.md)
 
 ## Directorio
 
 | Nombre | Categoría | Ficha |
 |---|---|---|
-| El Gran Observatorio | Partner · Official Beta Tester · Media & Editorial | [Ver ficha](PARTNERS/el-gran-observatorio.es.md) |
+| El Gran Observatorio | Official Beta Testing Partner · Media & Editorial | [Ver ficha](PARTNERS/el-gran-observatorio.es.md) |
 | XERJ Corpus Hub | Research & Corpus | [Ver entrada](RESEARCH/xerj-corpus-hub.es.md) |
 
 ---
